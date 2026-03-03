@@ -59,12 +59,50 @@ export const useCartStore = create(
           set({ cart: updatedCart })
         }
       },
+
+      updateDrinkType: (itemId, halfFull = null, drinkType = 'hot') => {
+        const { cart } = get()
+        const updatedCart = cart.map((item) =>
+          item.id === itemId && item.halfFull === halfFull
+            ? { ...item, drinkType }
+            : item
+        )
+        set({ cart: updatedCart })
+      },
+
+      updateComboDrink: (itemId, halfFull = null, linkedDrinkItemId = null, linkedDrinkName = null) => {
+        const { cart } = get()
+        const updatedCart = cart.map((item) =>
+          item.id === itemId && item.halfFull === halfFull
+            ? {
+                ...item,
+                linkedDrinkItemId,
+                linkedDrinkName,
+                drinkTemp: linkedDrinkItemId ? (item.drinkTemp || 'hot') : null,
+              }
+            : item
+        )
+        set({ cart: updatedCart })
+      },
+
+      updateComboDrinkTemp: (itemId, halfFull = null, drinkTemp = 'hot') => {
+        const { cart } = get()
+        const updatedCart = cart.map((item) =>
+          item.id === itemId && item.halfFull === halfFull
+            ? { ...item, drinkTemp }
+            : item
+        )
+        set({ cart: updatedCart })
+      },
       
       clearCart: () => set({ cart: [] }),
       
       getTotal: () => {
         const { cart } = get()
-        return cart.reduce((total, item) => total + (item.price * item.quantity), 0)
+        return cart.reduce((total, item) => {
+          const icedSurcharge = item.isCombo && item.linkedDrinkItemId && item.drinkTemp === 'iced' ? 3 : 0
+          return total + ((item.price + icedSurcharge) * item.quantity)
+        }, 0)
       },
       
       getItemCount: () => {

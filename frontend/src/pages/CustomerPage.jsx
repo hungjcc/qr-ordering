@@ -9,22 +9,22 @@ import {
 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { getMenu, createOrder, createPaymentOrder, verifyPayment } from '../lib/api'
+import { getMenu, getCategories, createOrder, createPaymentOrder, verifyPayment, getPricingSettings } from '../lib/api'
 import { useCartStore, useThemeStore, useToastStore } from '../store/store'
 
 // Categories with proper hierarchy
 const categories = [
   { id: 'all', name: '全部餐點', icon: '🍽️', subcategories: [] },
-  { id: 'soup', name: '湯品', icon: '🥣', subcategories: ['veg', 'non-veg'] },
-  { id: 'starters', name: '開胃菜', icon: '🍗', subcategories: ['chicken', 'veg', 'tandoori', 'kebab'] },
-  { id: 'rice_noodles', name: '飯類與麵類', icon: '🍚', subcategories: ['veg', 'chicken', 'egg'] },
-  { id: 'main_course', name: '主菜', icon: '🍛', subcategories: ['veg', 'chicken', 'mutton'] },
-  { id: 'biryani', name: 'Biryani', icon: '🍲', subcategories: ['veg', 'chicken', 'mutton', 'egg', 'fish', 'prawns'] },
-  { id: 'rolls', name: '捲餅與沙威瑪', icon: '🌯', subcategories: ['paneer', 'chicken', 'egg', 'shawarma', 'frankie'] },
-  { id: 'breads', name: '麵包類', icon: '🫓', subcategories: ['roti', 'naan', 'paratha', 'kulcha', 'extras'] },
-  { id: 'combos', name: '套餐', icon: '📦', subcategories: ['thali', 'pack', 'rice_combo', 'noodles_combo', 'platter', 'biryani_combo', 'breakfast', 'kids', 'lunchbox', 'chinese_combo'] },
-  { id: 'south_indian', name: '南印度料理', icon: '🍛', subcategories: ['dosa', 'idli', 'vada', 'uttapam', 'rice'] },
-  { id: 'beverages', name: '飲品', icon: '🥤', subcategories: ['tea', 'coffee', 'lassi', 'cold_drink', 'water', 'lime', 'ice_cream', 'falooda', 'milk'] },
+  { id: 'soups', name: '湯品與粥品', icon: '🥣', subcategories: ['湯品', '粥品'] },
+  { id: 'starters', name: '小食', icon: '🍗', subcategories: ['小食'] },
+  { id: 'rice_noodles', name: '飯類與粉麵', icon: '🍚', subcategories: ['炒飯', '炒粉麵', '粉麵'] },
+  { id: 'main_course', name: '主食', icon: '🍛', subcategories: ['主食'] },
+  { id: 'biryani', name: '港式飯類', icon: '🍲', subcategories: ['飯類'] },
+  { id: 'rolls', name: '三文治與卷類', icon: '🥪', subcategories: ['三文治', '卷類'] },
+  { id: 'breads', name: '包點與多士', icon: '🍞', subcategories: ['包點', '多士'] },
+  { id: 'combos', name: '套餐', icon: '📦', subcategories: ['早餐套餐', '午市套餐', '常餐', '焗飯套餐', '粉麵套餐', '小食拼盤'] },
+  { id: 'south_indian', name: '其他精選', icon: '🍛', subcategories: ['其他'] },
+  { id: 'beverages', name: '飲品', icon: '🥤', subcategories: ['熱飲', '凍飲'] },
 ]
 
 const vegFilterOptions = [
@@ -57,8 +57,10 @@ export default function CustomerPage() {
   const [currentOrder, setCurrentOrder] = useState(null)
   const [orderStatus, setOrderStatus] = useState('pending')
   const [isOnline, setIsOnline] = useState(true) // Default to true, only show offline if confirmed
+  const [pricingSettings, setPricingSettings] = useState(null)
+  const [categoryNameById, setCategoryNameById] = useState({})
 
-  const { cart, addToCart, removeFromCart, updateQuantity, clearCart, setTableNumber, getTotal } = useCartStore()
+  const { cart, addToCart, removeFromCart, updateQuantity, updateComboDrink, updateComboDrinkTemp, clearCart, setTableNumber, getTotal } = useCartStore()
   const { addToast } = useToastStore()
 
   useEffect(() => {
@@ -101,6 +103,8 @@ export default function CustomerPage() {
 
   useEffect(() => {
     fetchMenu()
+    fetchCategories()
+    fetchPricingSettings()
   }, [])
   
   useEffect(() => {
@@ -142,6 +146,28 @@ export default function CustomerPage() {
       setLoading(false)
     }
   }
+
+  const fetchCategories = async () => {
+    try {
+      const categories = await getCategories()
+      const mapping = {}
+      categories.forEach((cat) => {
+        mapping[cat.id] = cat.name
+      })
+      setCategoryNameById(mapping)
+    } catch (error) {
+      setCategoryNameById({})
+    }
+  }
+
+  const fetchPricingSettings = async () => {
+    try {
+      const data = await getPricingSettings()
+      setPricingSettings(data)
+    } catch (error) {
+      setPricingSettings(null)
+    }
+  }
   
   const handleRetry = () => {
     setRetryCount(prev => prev + 1)
@@ -158,9 +184,10 @@ export default function CustomerPage() {
     }
     
     if (selectedCategory !== 'all') {
-      // Match by category_id from database or category name
+      // Match by category_id from database or resolved category name
       filtered = filtered.filter(item => 
         item.category_id === parseInt(selectedCategory) || 
+        categoryNameById[item.category_id] === selectedCategory ||
         item.category === selectedCategory
       )
     }
@@ -184,7 +211,7 @@ export default function CustomerPage() {
     }
     
     setFilteredMenu(filtered)
-  }, [menu, search, selectedCategory, selectedSubcategory, vegFilter, sortBy])
+  }, [menu, search, selectedCategory, selectedSubcategory, vegFilter, sortBy, categoryNameById])
   
   const handleAddToCart = (item, halfFull) => {
     const price = halfFull === 'half' ? item.price_half : item.price_full || item.price
@@ -193,7 +220,13 @@ export default function CustomerPage() {
       name: item.name,
       price: price,
       halfFull: halfFull,
-      hasHalfFull: item.has_half_full
+      hasHalfFull: item.has_half_full,
+      isCombo: item.is_combo,
+      linkedDrinkItemId: null,
+      linkedDrinkName: null,
+      drinkTemp: null,
+      pricingNote: item.pricing_note,
+      mealPeriod: item.meal_period
     })
     addToast({ type: 'success', message: `${item.name} 已加入！` })
   }
@@ -217,9 +250,11 @@ export default function CustomerPage() {
         items: cart.map(item => ({
           menu_item_id: item.id,
           name: item.name,
-          price: item.price,
+          price: item.price + (item.isCombo && item.linkedDrinkItemId && item.drinkTemp === 'iced' ? 3 : 0),
           quantity: item.quantity,
-          half_full: item.halfFull
+          half_full: item.halfFull,
+          linked_drink_item_id: item.linkedDrinkItemId || null,
+          drink_temp: item.linkedDrinkItemId ? (item.drinkTemp || 'hot') : null
         })),
         notes: formData.notes
       }
@@ -227,14 +262,14 @@ export default function CustomerPage() {
       const orderResult = await createOrder(orderData)
       setCurrentOrder(orderResult)
       
-      const paymentResult = await createPaymentOrder(orderResult.order_id, getTotal())
+      const paymentResult = await createPaymentOrder(orderResult.order_id, orderResult.total_amount)
       
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_SEULnJj6ZBfPb4',
         amount: paymentResult.amount,
         currency: paymentResult.currency,
         order_id: paymentResult.order_id,
-        name: 'Delicacy 餐廳',
+        name: '熊熊冰室',
         description: `Order #${orderResult.order_number}`,
         handler: async (response) => {
           try {
@@ -271,6 +306,7 @@ export default function CustomerPage() {
   }
   
   const cartTotal = getTotal()
+  const beverageOptions = menu.filter((menuItem) => categoryNameById[menuItem.category_id] === 'beverages')
   
   if (orderPlaced && currentOrder) {
     return (
@@ -354,7 +390,7 @@ export default function CustomerPage() {
         animate={{ opacity: 1 }}
         className="bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 text-white py-6 px-4"
       >
-        <h1 className="text-xl sm:text-2xl font-bold mb-1">Delicacy 餐廳</h1>
+        <h1 className="text-xl sm:text-2xl font-bold mb-1">熊熊冰室</h1>
         {tableNumber && (
           <p className="text-white/90 flex items-center gap-2 text-sm">
             <MapPin className="w-4 h-4" /> 餐桌 {tableNumber}
@@ -515,6 +551,7 @@ export default function CustomerPage() {
                 cart={cart}
                 total={cartTotal}
                 tableNumber={tableNumber}
+                pricingSettings={pricingSettings}
                 onBack={() => setCheckoutMode(false)}
                 onSubmit={handleCheckout}
               />
@@ -522,9 +559,13 @@ export default function CustomerPage() {
               <CartSidebar
                 cart={cart}
                 total={cartTotal}
+                pricingSettings={pricingSettings}
+                beverageOptions={beverageOptions}
                 onClose={() => setShowCart(false)}
                 onRemove={removeFromCart}
                 onUpdate={updateQuantity}
+                onUpdateComboDrink={updateComboDrink}
+                onUpdateComboDrinkTemp={updateComboDrinkTemp}
                 onCheckout={() => setCheckoutMode(true)}
               />
             )}
@@ -658,7 +699,9 @@ function MenuCard({ item, index, onAddToCart }) {
   )
 }
 
-function CartSidebar({ cart, total, onClose, onRemove, onUpdate, onCheckout }) {
+function CartSidebar({ cart, total, pricingSettings, beverageOptions, onClose, onRemove, onUpdate, onUpdateComboDrink, onUpdateComboDrinkTemp, onCheckout }) {
+  const appliedNotes = [...new Set(cart.map((item) => item.pricingNote).filter(Boolean))]
+
   return (
     <motion.div
       initial={{ x: '100%' }}
@@ -686,7 +729,65 @@ function CartSidebar({ cart, total, onClose, onRemove, onUpdate, onCheckout }) {
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900 dark:text-white">{item.name}</h4>
                   {item.halfFull && <p className="text-xs capitalize text-gray-500 dark:text-gray-400">{item.halfFull}</p>}
-                  <p className="font-medium text-primary-600 dark:text-orange-400">${item.price}</p>
+                  {item.isCombo ? (
+                    <div className="mt-1 space-y-1">
+                      <div className="space-y-2">
+                        <select
+                          value={item.linkedDrinkItemId || ''}
+                          onChange={(e) => {
+                            const selectedId = e.target.value ? parseInt(e.target.value) : null
+                            const selectedDrink = beverageOptions.find((opt) => opt.id === selectedId)
+                            onUpdateComboDrink(item.id, item.halfFull, selectedId, selectedDrink?.name || null)
+                          }}
+                          className="w-full px-2 py-1 rounded text-xs bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
+                        >
+                          <option value="">未配飲品</option>
+                          {beverageOptions.map((drink) => (
+                            <option key={drink.id} value={drink.id}>{drink.name}</option>
+                          ))}
+                        </select>
+
+                        {item.linkedDrinkItemId ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => onUpdateComboDrinkTemp(item.id, item.halfFull, 'hot')}
+                              className={`px-2 py-0.5 rounded text-xs ${item.drinkTemp !== 'iced' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-600 dark:text-gray-300'}`}
+                            >
+                              熱飲（免費）
+                            </button>
+                            <button
+                              onClick={() => onUpdateComboDrinkTemp(item.id, item.halfFull, 'iced')}
+                              className={`px-2 py-0.5 rounded text-xs ${item.drinkTemp === 'iced' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-600 dark:text-gray-300'}`}
+                            >
+                              凍飲（+$3）
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {item.linkedDrinkItemId
+                          ? `已配：${item.drinkTemp === 'iced' ? '凍' : '熱'}${item.linkedDrinkName}（+${item.drinkTemp === 'iced' ? 3 : 0}）`
+                          : '未配飲品'}
+                      </p>
+                      {item.linkedDrinkItemId && (
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400 space-y-0.5">
+                          <p>
+                            飲品原價 ${beverageOptions.find((d) => d.id === item.linkedDrinkItemId)?.price ?? 0} 已豁免
+                          </p>
+                          <p>
+                            套餐價 ${item.price.toFixed(2)} + 附加費 ${item.drinkTemp === 'iced' ? '3.00' : '0.00'} = ${(
+                              item.price + (item.linkedDrinkItemId && item.drinkTemp === 'iced' ? 3 : 0)
+                            ).toFixed(2)}
+                          </p>
+                        </div>
+                      )}
+
+                      <p className="font-medium text-primary-600 dark:text-orange-400">${(item.price + (item.linkedDrinkItemId && item.drinkTemp === 'iced' ? 3 : 0)).toFixed(2)}</p>
+                    </div>
+                  ) : (
+                    <p className="font-medium text-primary-600 dark:text-orange-400">${item.price}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -711,6 +812,13 @@ function CartSidebar({ cart, total, onClose, onRemove, onUpdate, onCheckout }) {
       
       {cart.length > 0 && (
         <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          {pricingSettings && (
+            <div className="mb-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-xs text-orange-700 dark:text-orange-300">
+              <p>午市 {pricingSettings.lunch_start}-{pricingSettings.lunch_end}：-{pricingSettings.lunch_discount_pct}%</p>
+              <p>晚市 {pricingSettings.dinner_start}-{pricingSettings.dinner_end}：+{pricingSettings.dinner_surcharge_pct}%</p>
+              {appliedNotes.length > 0 && <p className="mt-1 font-semibold">本單已套用：{appliedNotes.join('、')}</p>}
+            </div>
+          )}
           <div className="flex items-center justify-between mb-4 text-gray-900 dark:text-white">
             <span className="font-medium">小計</span>
             <span className="text-xl font-bold">${total.toFixed(0)}</span>
@@ -728,13 +836,15 @@ function CartSidebar({ cart, total, onClose, onRemove, onUpdate, onCheckout }) {
   )
 }
 
-function CheckoutPage({ cart, total, tableNumber, onBack, onSubmit }) {
+function CheckoutPage({ cart, total, tableNumber, pricingSettings, onBack, onSubmit }) {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     notes: ''
   })
   const [loading, setLoading] = useState(false)
+  const appliedNotes = [...new Set(cart.map((item) => item.pricingNote).filter(Boolean))]
+  const comboLines = cart.filter((item) => item.isCombo)
   
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -784,9 +894,10 @@ function CheckoutPage({ cart, total, tableNumber, onBack, onSubmit }) {
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400"
-              placeholder="請輸入電話號碼"
-              minLength="10"
+              placeholder="例如 91234567 或 +852 91234567"
+              inputMode="tel"
             />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">香港手機格式：8位數字（可加 +852）</p>
           </div>
           
           <div>
@@ -805,6 +916,26 @@ function CheckoutPage({ cart, total, tableNumber, onBack, onSubmit }) {
               <span>品項數</span>
               <span>{cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
             </div>
+            {comboLines.length > 0 && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 pt-2 space-y-1">
+                {comboLines.map((item, idx) => {
+                  const surcharge = item.linkedDrinkItemId && item.drinkTemp === 'iced' ? 3 : 0
+                  const finalPrice = item.price + surcharge
+                  return (
+                    <p key={`${item.id}-${idx}`}>
+                      {item.name}：套餐價 ${item.price.toFixed(2)} + 附加費 ${surcharge.toFixed(2)} = ${finalPrice.toFixed(2)}
+                    </p>
+                  )
+                })}
+              </div>
+            )}
+            {pricingSettings && (
+              <div className="text-xs text-orange-700 dark:text-orange-300 border-t border-gray-200 dark:border-gray-600 pt-2">
+                <p>午市 {pricingSettings.lunch_start}-{pricingSettings.lunch_end}：-{pricingSettings.lunch_discount_pct}%</p>
+                <p>晚市 {pricingSettings.dinner_start}-{pricingSettings.dinner_end}：+{pricingSettings.dinner_surcharge_pct}%</p>
+                {appliedNotes.length > 0 && <p className="mt-1 font-semibold">本單已套用：{appliedNotes.join('、')}</p>}
+              </div>
+            )}
             <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
               <span>總計</span>
               <span>${total.toFixed(0)}</span>

@@ -1,5 +1,5 @@
 """
-Delicacy Restaurant - Production-Ready Restaurant Management System Backend
+熊熊冰室 - Production-Ready Restaurant Management System Backend
 FastAPI application with SQLite, WebSocket, Razorpay integration, Analytics, and more
 """
 
@@ -39,6 +39,10 @@ RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_SEULnJj6ZBfPb4")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "hbKF4N7QaMyjDcI0FilNtPyW")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 GST_RATE = float(os.getenv("GST_RATE", "5"))
+HK_UTC_OFFSET_HOURS = int(os.getenv("HK_UTC_OFFSET_HOURS", "8"))
+COMBO_LUNCH_DISCOUNT_PCT = float(os.getenv("COMBO_LUNCH_DISCOUNT_PCT", "10"))
+COMBO_DINNER_SURCHARGE_PCT = float(os.getenv("COMBO_DINNER_SURCHARGE_PCT", "10"))
+COMBO_ICED_DRINK_SURCHARGE = float(os.getenv("COMBO_ICED_DRINK_SURCHARGE", "3"))
 
 # Initialize Razorpay client
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
@@ -154,6 +158,19 @@ class Discount(Base):
     valid_until = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class PricingSettings(Base):
+    """Time-based combo pricing settings"""
+    __tablename__ = "pricing_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    lunch_start = Column(String(5), default="11:00")
+    lunch_end = Column(String(5), default="15:00")
+    lunch_discount_pct = Column(Float, default=10)
+    dinner_start = Column(String(5), default="18:00")
+    dinner_end = Column(String(5), default="22:00")
+    dinner_surcharge_pct = Column(Float, default=10)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class Order(Base):
     """Order model"""
@@ -294,6 +311,9 @@ class MenuItemResponse(BaseModel):
     preparation_time: int
     calories: Optional[int]
     spice_level: int
+    is_combo: bool = False
+    pricing_note: Optional[str] = None
+    meal_period: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -305,6 +325,8 @@ class CartItem(BaseModel):
     price: float
     quantity: int = 1
     half_full: Optional[str] = None
+    linked_drink_item_id: Optional[int] = None
+    drink_temp: Optional[str] = None
     notes: Optional[str] = None
 
 class OrderCreate(BaseModel):
@@ -318,9 +340,20 @@ class OrderCreate(BaseModel):
     
     @validator('customer_phone')
     def validate_phone(cls, v):
-        if len(v) < 10:
-            raise ValueError('Phone number must be at least 10 digits')
-        return v
+        raw = (v or "").strip()
+        digits = ''.join(ch for ch in raw if ch.isdigit())
+
+        if digits.startswith('852') and len(digits) == 11:
+            local = digits[3:]
+        elif len(digits) == 8:
+            local = digits
+        else:
+            raise ValueError('Invalid HK phone number. Use 8-digit mobile, optional +852 prefix.')
+
+        if local[0] not in {'5', '6', '9'}:
+            raise ValueError('Invalid HK mobile number. Must start with 5, 6, or 9.')
+
+        return local
 
 class OrderResponse(BaseModel):
     """Schema for order response"""
@@ -390,6 +423,27 @@ class DiscountResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class PricingSettingsResponse(BaseModel):
+    id: int
+    lunch_start: str
+    lunch_end: str
+    lunch_discount_pct: float
+    dinner_start: str
+    dinner_end: str
+    dinner_surcharge_pct: float
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class PricingSettingsUpdate(BaseModel):
+    lunch_start: str
+    lunch_end: str
+    lunch_discount_pct: float
+    dinner_start: str
+    dinner_end: str
+    dinner_surcharge_pct: float
+
 class PaymentVerification(BaseModel):
     """Schema for payment verification"""
     razorpay_payment_id: str
@@ -409,6 +463,103 @@ class AnalyticsQuery(BaseModel):
 class ExportFormat(BaseModel):
     """Schema for export format"""
     format: str = "csv"  # csv, pdf
+
+
+def get_hk_now() -> datetime:
+    return datetime.utcnow() + timedelta(hours=HK_UTC_OFFSET_HOURS)
+
+
+def default_pricing_settings() -> Dict:
+    return {
+        "lunch_start": "11:00",
+        "lunch_end": "15:00",
+        "lunch_discount_pct": COMBO_LUNCH_DISCOUNT_PCT,
+        "dinner_start": "18:00",
+        "dinner_end": "22:00",
+        "dinner_surcharge_pct": COMBO_DINNER_SURCHARGE_PCT,
+    }
+
+
+def time_to_minutes(hhmm: str, fallback: str) -> int:
+    try:
+        value = hhmm or fallback
+        hour_str, minute_str = value.split(":")
+        hour = int(hour_str)
+        minute = int(minute_str)
+        if 0 <= hour <= 23 and 0 <= minute <= 59:
+            return hour * 60 + minute
+    except Exception:
+        pass
+    fb_hour, fb_minute = map(int, fallback.split(":"))
+    return fb_hour * 60 + fb_minute
+
+
+def is_in_window(now_minutes: int, start_minutes: int, end_minutes: int) -> bool:
+    if start_minutes <= end_minutes:
+        return start_minutes <= now_minutes < end_minutes
+    return now_minutes >= start_minutes or now_minutes < end_minutes
+
+
+def get_meal_period(current_time: datetime, settings: Dict) -> str:
+    now_minutes = current_time.hour * 60 + current_time.minute
+    lunch_start = time_to_minutes(settings.get("lunch_start", "11:00"), "11:00")
+    lunch_end = time_to_minutes(settings.get("lunch_end", "15:00"), "15:00")
+    dinner_start = time_to_minutes(settings.get("dinner_start", "18:00"), "18:00")
+    dinner_end = time_to_minutes(settings.get("dinner_end", "22:00"), "22:00")
+
+    if is_in_window(now_minutes, lunch_start, lunch_end):
+        return "lunch"
+    if is_in_window(now_minutes, dinner_start, dinner_end):
+        return "dinner"
+    return "regular"
+
+
+def apply_combo_time_pricing(base_price: float, settings: Dict, current_time: Optional[datetime] = None):
+    now = current_time or get_hk_now()
+    period = get_meal_period(now, settings)
+    lunch_discount = float(settings.get("lunch_discount_pct", COMBO_LUNCH_DISCOUNT_PCT))
+    dinner_surcharge = float(settings.get("dinner_surcharge_pct", COMBO_DINNER_SURCHARGE_PCT))
+
+    if period == "lunch":
+        return round(base_price * (1 - lunch_discount / 100), 2), period
+    if period == "dinner":
+        return round(base_price * (1 + dinner_surcharge / 100), 2), period
+    return round(base_price, 2), period
+
+
+def get_pricing_note(period: str, settings: Dict) -> Optional[str]:
+    lunch_discount = float(settings.get("lunch_discount_pct", COMBO_LUNCH_DISCOUNT_PCT))
+    dinner_surcharge = float(settings.get("dinner_surcharge_pct", COMBO_DINNER_SURCHARGE_PCT))
+    if period == "lunch":
+        return f"午市優惠 -{int(lunch_discount)}%"
+    if period == "dinner":
+        return f"晚市加幅 +{int(dinner_surcharge)}%"
+    return None
+
+
+async def get_or_create_pricing_settings(db: AsyncSession) -> PricingSettings:
+    result = await db.execute(select(PricingSettings).limit(1))
+    settings = result.scalar_one_or_none()
+    if settings:
+        return settings
+
+    defaults = default_pricing_settings()
+    settings = PricingSettings(**defaults)
+    db.add(settings)
+    await db.commit()
+    await db.refresh(settings)
+    return settings
+
+
+def pricing_settings_to_dict(settings: PricingSettings) -> Dict:
+    return {
+        "lunch_start": settings.lunch_start,
+        "lunch_end": settings.lunch_end,
+        "lunch_discount_pct": settings.lunch_discount_pct,
+        "dinner_start": settings.dinner_start,
+        "dinner_end": settings.dinner_end,
+        "dinner_surcharge_pct": settings.dinner_surcharge_pct,
+    }
 
 # ===================== WEBSOCKET CONNECTION MANAGER =====================
 
@@ -493,48 +644,55 @@ def get_default_menu():
     """Return default menu items for seeding"""
     return [
         # Soups
-        {"name": "Chicken Manchow Soup", "description": "Hot and spicy soup with crispy noodles", "price": 120, "category": "soups", "subcategory": "non-veg", "is_vegetarian": False, "has_half_full": False, "preparation_time": 8},
-        {"name": "Chicken Hot & Sour Soup", "description": "Tangy and spicy soup", "price": 120, "category": "soups", "subcategory": "non-veg", "is_vegetarian": False, "has_half_full": False, "preparation_time": 8},
-        {"name": "Veg Manchow Soup", "description": "Hot and spicy vegetable soup with noodles", "price": 90, "category": "soups", "subcategory": "veg", "is_vegetarian": True, "has_half_full": False, "preparation_time": 8},
-        {"name": "Sweet Corn Soup", "description": "Creamy sweet corn soup", "price": 100, "category": "soups", "subcategory": "veg", "is_vegetarian": True, "has_half_full": False, "preparation_time": 8},
+        {"name": "羅宋湯", "description": "經典港式蕃茄牛肉蔬菜湯", "price": 38, "category": "soups", "subcategory": "湯品", "is_vegetarian": False, "has_half_full": False, "preparation_time": 8},
+        {"name": "忌廉蘑菇湯", "description": "香濃忌廉配蘑菇", "price": 36, "category": "soups", "subcategory": "湯品", "is_vegetarian": True, "has_half_full": False, "preparation_time": 8},
+        {"name": "粟米魚柳羹", "description": "粟米濃湯配嫩滑魚柳", "price": 42, "category": "soups", "subcategory": "湯品", "is_vegetarian": False, "has_half_full": False, "preparation_time": 10},
+        {"name": "皮蛋瘦肉粥", "description": "綿滑白粥配皮蛋及瘦肉", "price": 40, "category": "soups", "subcategory": "粥品", "is_vegetarian": False, "has_half_full": False, "preparation_time": 10},
         # Starters
-        {"name": "Chicken Lollipop", "description": "Spicy chicken wings on bone", "price_half": 90, "price_full": 170, "category": "starters", "subcategory": "chicken", "is_vegetarian": False, "has_half_full": True, "preparation_time": 15},
-        {"name": "Chicken 65", "description": "Spicy deep fried chicken", "price_half": 100, "price_full": 190, "category": "starters", "subcategory": "chicken", "is_vegetarian": False, "has_half_full": True, "preparation_time": 15},
-        {"name": "Veg Crispy", "description": "Crispy fried vegetables", "price_half": 80, "price_full": 150, "category": "starters", "subcategory": "veg", "is_vegetarian": True, "has_half_full": True, "preparation_time": 12},
-        {"name": "Paneer 65", "description": "Spicy paneer fry", "price_half": 110, "price_full": 210, "category": "starters", "subcategory": "veg", "is_vegetarian": True, "has_half_full": True, "preparation_time": 15},
+        {"name": "咖哩魚蛋", "description": "街頭風味彈牙魚蛋", "price_half": 28, "price_full": 45, "category": "starters", "subcategory": "小食", "is_vegetarian": False, "has_half_full": True, "preparation_time": 8},
+        {"name": "炸雲吞", "description": "酥脆炸雲吞配甜酸醬", "price_half": 32, "price_full": 52, "category": "starters", "subcategory": "小食", "is_vegetarian": False, "has_half_full": True, "preparation_time": 10},
+        {"name": "黃金雞翼", "description": "香脆惹味雞中翼", "price_half": 38, "price_full": 62, "category": "starters", "subcategory": "小食", "is_vegetarian": False, "has_half_full": True, "preparation_time": 12},
+        {"name": "椒鹽豆腐", "description": "外脆內嫩豆腐粒", "price_half": 30, "price_full": 48, "category": "starters", "subcategory": "小食", "is_vegetarian": True, "has_half_full": True, "preparation_time": 10},
         # Main Course
-        {"name": "Butter Chicken", "description": "Creamy tomato gravy with tender chicken", "price_half": 200, "price_full": 380, "category": "main_course", "subcategory": "chicken", "is_vegetarian": False, "has_half_full": True, "preparation_time": 20},
-        {"name": "Chicken Tikka Masala", "description": "Spicy tomato gravy with chicken pieces", "price_half": 210, "price_full": 400, "category": "main_course", "subcategory": "chicken", "is_vegetarian": False, "has_half_full": True, "preparation_time": 20},
-        {"name": "Paneer Butter Masala", "description": "Creamy paneer in tomato gravy", "price_half": 200, "price_full": 380, "category": "main_course", "subcategory": "veg", "is_vegetarian": True, "has_half_full": True, "preparation_time": 18},
-        {"name": "Dal Makhani", "description": "Black lentil creamy gravy", "price": 200, "category": "main_course", "subcategory": "veg", "is_vegetarian": True, "has_half_full": False, "preparation_time": 15},
-        # Biryani
-        {"name": "Chicken Dum Biryani", "description": "Aromatic basmati rice with tender chicken", "price_half": 180, "price_full": 320, "category": "biryani", "subcategory": "chicken", "is_vegetarian": False, "has_half_full": True, "preparation_time": 30},
-        {"name": "Mutton Dum Biryani", "description": "Aromatic basmati rice with tender mutton", "price_half": 220, "price_full": 420, "category": "biryani", "subcategory": "mutton", "is_vegetarian": False, "has_half_full": True, "preparation_time": 35},
-        {"name": "Veg Biryani", "description": "Aromatic rice with vegetables", "price_half": 140, "price_full": 260, "category": "biryani", "subcategory": "veg", "is_vegetarian": True, "has_half_full": True, "preparation_time": 22},
+        {"name": "黑椒牛柳意粉", "description": "香濃黑椒汁配牛柳", "price_half": 48, "price_full": 78, "category": "main_course", "subcategory": "主食", "is_vegetarian": False, "has_half_full": True, "preparation_time": 15},
+        {"name": "葡汁焗雞飯", "description": "葡國咖哩汁焗雞扒飯", "price_half": 50, "price_full": 82, "category": "main_course", "subcategory": "主食", "is_vegetarian": False, "has_half_full": True, "preparation_time": 18},
+        {"name": "西多士", "description": "港式花生醬西多士", "price": 34, "category": "main_course", "subcategory": "主食", "is_vegetarian": True, "has_half_full": False, "preparation_time": 8},
+        {"name": "沙嗲牛肉公仔麵", "description": "惹味沙嗲牛肉配即食麵", "price": 46, "category": "main_course", "subcategory": "主食", "is_vegetarian": False, "has_half_full": False, "preparation_time": 12},
+        # Rice Dishes
+        {"name": "焗豬扒飯", "description": "經典港式焗飯", "price_half": 52, "price_full": 86, "category": "biryani", "subcategory": "飯類", "is_vegetarian": False, "has_half_full": True, "preparation_time": 20},
+        {"name": "叉燒煎蛋飯", "description": "蜜味叉燒配太陽蛋", "price_half": 42, "price_full": 70, "category": "biryani", "subcategory": "飯類", "is_vegetarian": False, "has_half_full": True, "preparation_time": 12},
+        {"name": "滑蛋蝦仁飯", "description": "滑蛋配鮮蝦仁", "price_half": 48, "price_full": 78, "category": "biryani", "subcategory": "飯類", "is_vegetarian": False, "has_half_full": True, "preparation_time": 14},
         # Rice & Noodles
-        {"name": "Chicken Fried Rice", "description": "Fried rice with chicken", "price_half": 120, "price_full": 200, "category": "rice_noodles", "subcategory": "chicken", "is_vegetarian": False, "has_half_full": True, "preparation_time": 15},
-        {"name": "Veg Fried Rice", "description": "Mixed vegetable fried rice", "price_half": 90, "price_full": 150, "category": "rice_noodles", "subcategory": "veg", "is_vegetarian": True, "has_half_full": True, "preparation_time": 12},
-        {"name": "Chicken Hakka Noodles", "description": "Stir fried noodles with chicken", "price_half": 120, "price_full": 200, "category": "rice_noodles", "subcategory": "chicken", "is_vegetarian": False, "has_half_full": True, "preparation_time": 15},
-        {"name": "Veg Hakka Noodles", "description": "Stir fried vegetables with noodles", "price_half": 90, "price_full": 150, "category": "rice_noodles", "subcategory": "veg", "is_vegetarian": True, "has_half_full": True, "preparation_time": 12},
-        # Rolls
-        {"name": "Paneer Roll", "description": "Soft roti with paneer filling", "price": 80, "category": "rolls", "subcategory": "paneer", "is_vegetarian": True, "has_half_full": False, "preparation_time": 8},
-        {"name": "Chicken Roll", "description": "Soft roti with chicken filling", "price": 90, "category": "rolls", "subcategory": "chicken", "is_vegetarian": False, "has_half_full": False, "preparation_time": 8},
-        {"name": "Egg Roll", "description": "Roti with egg filling", "price": 60, "category": "rolls", "subcategory": "egg", "is_vegetarian": False, "has_half_full": False, "preparation_time": 6},
-        # Breads
-        {"name": "Plain Roti", "description": "Soft Indian bread", "price": 15, "category": "breads", "subcategory": "roti", "is_vegetarian": True, "has_half_full": False, "preparation_time": 5},
-        {"name": "Butter Naan", "description": "Butter naan", "price": 50, "category": "breads", "subcategory": "naan", "is_vegetarian": True, "has_half_full": False, "preparation_time": 6},
-        {"name": "Aloo Paratha", "description": "Stuffed potato paratha", "price": 70, "category": "breads", "subcategory": "paratha", "is_vegetarian": True, "has_half_full": False, "preparation_time": 10},
+        {"name": "揚州炒飯", "description": "叉燒蝦仁蛋炒飯", "price_half": 42, "price_full": 68, "category": "rice_noodles", "subcategory": "炒飯", "is_vegetarian": False, "has_half_full": True, "preparation_time": 12},
+        {"name": "乾炒牛河", "description": "鑊氣十足乾炒河粉", "price_half": 46, "price_full": 74, "category": "rice_noodles", "subcategory": "炒粉麵", "is_vegetarian": False, "has_half_full": True, "preparation_time": 12},
+        {"name": "星洲炒米", "description": "咖哩風味米粉", "price_half": 40, "price_full": 66, "category": "rice_noodles", "subcategory": "炒粉麵", "is_vegetarian": False, "has_half_full": True, "preparation_time": 12},
+        {"name": "餐蛋公仔麵", "description": "火腿餐肉煎蛋配公仔麵", "price_half": 38, "price_full": 60, "category": "rice_noodles", "subcategory": "粉麵", "is_vegetarian": False, "has_half_full": True, "preparation_time": 10},
+        # Sandwiches
+        {"name": "餐蛋三文治", "description": "午餐肉雞蛋三文治", "price": 30, "category": "rolls", "subcategory": "三文治", "is_vegetarian": False, "has_half_full": False, "preparation_time": 6},
+        {"name": "公司三文治", "description": "多層火腿雞蛋番茄三文治", "price": 34, "category": "rolls", "subcategory": "三文治", "is_vegetarian": False, "has_half_full": False, "preparation_time": 8},
+        {"name": "腸仔蛋卷", "description": "嫩滑蛋皮包腸仔", "price": 32, "category": "rolls", "subcategory": "卷類", "is_vegetarian": False, "has_half_full": False, "preparation_time": 7},
+        # Bakery & Toast
+        {"name": "菠蘿包", "description": "港式經典甜包", "price": 16, "category": "breads", "subcategory": "包點", "is_vegetarian": True, "has_half_full": False, "preparation_time": 4},
+        {"name": "奶油豬仔包", "description": "香脆豬仔包配厚牛油", "price": 22, "category": "breads", "subcategory": "包點", "is_vegetarian": True, "has_half_full": False, "preparation_time": 5},
+        {"name": "法蘭西多士", "description": "金黃香脆港式多士", "price": 28, "category": "breads", "subcategory": "多士", "is_vegetarian": True, "has_half_full": False, "preparation_time": 6},
+        # Combo Sets
+        {"name": "經典早餐套餐", "description": "餐蛋麵 + 多士 + 熱飲", "price": 45, "category": "combos", "subcategory": "早餐套餐", "is_vegetarian": False, "has_half_full": False, "preparation_time": 12},
+        {"name": "公司三文治常餐", "description": "公司三文治 + 薯條 + 凍飲", "price": 52, "category": "combos", "subcategory": "常餐", "is_vegetarian": False, "has_half_full": False, "preparation_time": 12},
+        {"name": "午市焗豬扒飯套餐", "description": "焗豬扒飯 + 每日例湯 + 凍檸茶", "price": 68, "category": "combos", "subcategory": "午市套餐", "is_vegetarian": False, "has_half_full": False, "preparation_time": 18},
+        {"name": "焗飯二人套餐", "description": "任選焗飯兩款 + 小食拼盤 + 兩杯飲品", "price": 128, "category": "combos", "subcategory": "焗飯套餐", "is_vegetarian": False, "has_half_full": False, "preparation_time": 20},
+        {"name": "粉麵午餐套餐", "description": "乾炒牛河/星洲炒米 + 熱飲", "price": 58, "category": "combos", "subcategory": "粉麵套餐", "is_vegetarian": False, "has_half_full": False, "preparation_time": 14},
+        {"name": "熊熊小食拼盤", "description": "咖哩魚蛋 + 炸雲吞 + 黃金雞翼", "price": 78, "category": "combos", "subcategory": "小食拼盤", "is_vegetarian": False, "has_half_full": False, "preparation_time": 15},
         # Beverages
-        {"name": "Tea (Regular)", "description": "Indian masala tea", "price": 25, "category": "beverages", "subcategory": "tea", "is_vegetarian": True, "has_half_full": False, "preparation_time": 5},
-        {"name": "Coffee (Regular)", "description": "South Indian coffee", "price": 35, "category": "beverages", "subcategory": "coffee", "is_vegetarian": True, "has_half_full": False, "preparation_time": 5},
-        {"name": "Cold Drink (250ml)", "description": "Soft drink", "price": 30, "category": "beverages", "subcategory": "cold_drink", "is_vegetarian": True, "has_half_full": False, "preparation_time": 2},
-        {"name": "Mineral Water (500ml)", "description": "Packaged drinking water", "price": 20, "category": "beverages", "subcategory": "water", "is_vegetarian": True, "has_half_full": False, "preparation_time": 2},
+        {"name": "港式絲襪奶茶", "description": "茶香濃郁、口感順滑", "price": 24, "category": "beverages", "subcategory": "熱飲", "is_vegetarian": True, "has_half_full": False, "preparation_time": 4},
+        {"name": "凍檸茶", "description": "清爽檸檬紅茶", "price": 26, "category": "beverages", "subcategory": "凍飲", "is_vegetarian": True, "has_half_full": False, "preparation_time": 3},
+        {"name": "鴛鴦", "description": "咖啡奶茶經典混合", "price": 25, "category": "beverages", "subcategory": "熱飲", "is_vegetarian": True, "has_half_full": False, "preparation_time": 4},
+        {"name": "檸檬梳打", "description": "微氣泡檸檬特飲", "price": 28, "category": "beverages", "subcategory": "凍飲", "is_vegetarian": True, "has_half_full": False, "preparation_time": 2},
     ]
 
 # ===================== API ROUTES =====================
 
 app = FastAPI(
-    title="Delicacy Restaurant API",
+    title="熊熊冰室 API",
     description="Production-ready QR-based restaurant management system",
     version="2.0.0"
 )
@@ -641,9 +799,52 @@ async def get_menu(
     if search:
         query = query.where(MenuItem.name.contains(search))
     
+    settings_row = await get_or_create_pricing_settings(db)
+    pricing_settings = pricing_settings_to_dict(settings_row)
+
     result = await db.execute(query)
     items = result.scalars().all()
-    return items
+
+    category_ids = {item.category_id for item in items}
+    category_name_by_id = {}
+    if category_ids:
+        cat_result = await db.execute(select(Category).where(Category.id.in_(category_ids)))
+        categories = cat_result.scalars().all()
+        category_name_by_id = {cat.id: cat.name for cat in categories}
+
+    response_items = []
+    now = get_hk_now()
+    for item in items:
+        effective_price = item.price
+        meal_period = None
+        pricing_note = None
+
+        if category_name_by_id.get(item.category_id) == "combos" and item.price is not None:
+            effective_price, meal_period = apply_combo_time_pricing(item.price, pricing_settings, now)
+            pricing_note = get_pricing_note(meal_period, pricing_settings)
+
+        response_items.append({
+            "id": item.id,
+            "name": item.name,
+            "description": item.description,
+            "price_half": item.price_half,
+            "price_full": item.price_full,
+            "price": effective_price,
+            "category_id": item.category_id,
+            "subcategory": item.subcategory,
+            "image_url": item.image_url,
+            "is_available": item.is_available,
+            "is_vegetarian": item.is_vegetarian,
+            "has_half_full": item.has_half_full,
+            "preparation_time": item.preparation_time,
+            "calories": item.calories,
+            "spice_level": item.spice_level,
+            "is_combo": category_name_by_id.get(item.category_id) == "combos",
+            "pricing_note": pricing_note,
+            "meal_period": meal_period,
+        })
+
+    return response_items
 
 @app.get("/api/menu/{item_id}", response_model=MenuItemResponse)
 async def get_menu_item(item_id: int, db: AsyncSession = Depends(get_db)):
@@ -784,6 +985,47 @@ async def reset_menu(db: AsyncSession = Depends(get_db)):
     await db.commit()
     return {"message": f"Menu reset successfully with {len(menu_items_data)} items", "items_count": len(menu_items_data)}
 
+
+def validate_hhmm(value: str) -> bool:
+    try:
+        hour_str, minute_str = value.split(":")
+        hour = int(hour_str)
+        minute = int(minute_str)
+        return 0 <= hour <= 23 and 0 <= minute <= 59
+    except Exception:
+        return False
+
+
+@app.get("/api/admin/pricing-settings", response_model=PricingSettingsResponse)
+async def get_pricing_settings(db: AsyncSession = Depends(get_db)):
+    settings = await get_or_create_pricing_settings(db)
+    return settings
+
+
+@app.put("/api/admin/pricing-settings", response_model=PricingSettingsResponse)
+async def update_pricing_settings(payload: PricingSettingsUpdate, db: AsyncSession = Depends(get_db)):
+    for field_name in ["lunch_start", "lunch_end", "dinner_start", "dinner_end"]:
+        value = getattr(payload, field_name)
+        if not validate_hhmm(value):
+            raise HTTPException(status_code=400, detail=f"Invalid time format for {field_name}, expected HH:MM")
+
+    if not (0 <= payload.lunch_discount_pct <= 100):
+        raise HTTPException(status_code=400, detail="lunch_discount_pct must be between 0 and 100")
+    if not (0 <= payload.dinner_surcharge_pct <= 100):
+        raise HTTPException(status_code=400, detail="dinner_surcharge_pct must be between 0 and 100")
+
+    settings = await get_or_create_pricing_settings(db)
+    settings.lunch_start = payload.lunch_start
+    settings.lunch_end = payload.lunch_end
+    settings.lunch_discount_pct = payload.lunch_discount_pct
+    settings.dinner_start = payload.dinner_start
+    settings.dinner_end = payload.dinner_end
+    settings.dinner_surcharge_pct = payload.dinner_surcharge_pct
+
+    await db.commit()
+    await db.refresh(settings)
+    return settings
+
 # ===================== TABLE APIs =====================
 
 @app.get("/api/tables", response_model=List[TableResponse])
@@ -922,18 +1164,98 @@ async def delete_discount(discount_id: int, db: AsyncSession = Depends(get_db)):
 @app.post("/api/orders", response_model=Dict)
 async def create_order(order: OrderCreate, db: AsyncSession = Depends(get_db)):
     """Create new order"""
-    # Calculate subtotal
+    settings_row = await get_or_create_pricing_settings(db)
+    pricing_settings = pricing_settings_to_dict(settings_row)
+
+    menu_item_ids = set(item.menu_item_id for item in order.items)
+    for item in order.items:
+        if item.linked_drink_item_id:
+            menu_item_ids.add(item.linked_drink_item_id)
+
+    menu_lookup = {}
+    if menu_item_ids:
+        menu_result = await db.execute(
+            select(MenuItem, Category.name)
+            .join(Category, MenuItem.category_id == Category.id)
+            .where(MenuItem.id.in_(menu_item_ids))
+        )
+        menu_lookup = {
+            menu_item.id: (menu_item, category_name)
+            for menu_item, category_name in menu_result.all()
+        }
+
+    # Calculate subtotal using server-side pricing
     subtotal = 0
     items_data = []
+    now = get_hk_now()
     for item in order.items:
-        subtotal += item.price * item.quantity
+        menu_entry = menu_lookup.get(item.menu_item_id)
+        if not menu_entry:
+            raise HTTPException(status_code=400, detail=f"Invalid menu item ID: {item.menu_item_id}")
+
+        menu_item, category_name = menu_entry
+
+        if menu_item.has_half_full:
+            if item.half_full == "half" and menu_item.price_half is not None:
+                base_price = menu_item.price_half
+            elif menu_item.price_full is not None:
+                base_price = menu_item.price_full
+            elif menu_item.price is not None:
+                base_price = menu_item.price
+            else:
+                raise HTTPException(status_code=400, detail=f"No valid price for item: {menu_item.name}")
+        else:
+            if menu_item.price is not None:
+                base_price = menu_item.price
+            elif menu_item.price_full is not None:
+                base_price = menu_item.price_full
+            else:
+                raise HTTPException(status_code=400, detail=f"No valid price for item: {menu_item.name}")
+
+        unit_price = round(base_price, 2)
+        pricing_note = None
+        linked_drink_name = None
+        linked_drink_item_id = None
+        drink_temp = None
+        if category_name == "combos":
+            unit_price, meal_period = apply_combo_time_pricing(base_price, pricing_settings, now)
+            pricing_note = get_pricing_note(meal_period, pricing_settings)
+
+            if item.linked_drink_item_id is not None:
+                linked_entry = menu_lookup.get(item.linked_drink_item_id)
+                if not linked_entry:
+                    raise HTTPException(status_code=400, detail="Invalid linked drink item ID")
+
+                linked_menu_item, linked_category_name = linked_entry
+                if linked_category_name != "beverages":
+                    raise HTTPException(status_code=400, detail="Linked drink must be a beverage item")
+
+                linked_drink_item_id = linked_menu_item.id
+                linked_drink_name = linked_menu_item.name
+                drink_temp = (item.drink_temp or "hot").lower()
+
+                if drink_temp not in {"hot", "iced"}:
+                    raise HTTPException(status_code=400, detail="drink_temp must be 'hot' or 'iced'")
+
+                drink_surcharge = COMBO_ICED_DRINK_SURCHARGE if drink_temp == "iced" else 0
+                unit_price = round(unit_price + drink_surcharge, 2)
+                temp_label = "凍" if drink_temp == "iced" else "熱"
+                pricing_note = f"{pricing_note + '，' if pricing_note else ''}已配：{temp_label}{linked_drink_name}（只加{int(drink_surcharge)}，不收飲品原價）"
+            else:
+                pricing_note = f"{pricing_note + '，' if pricing_note else ''}未配飲品"
+
+        subtotal += unit_price * item.quantity
         items_data.append({
             "menu_item_id": item.menu_item_id,
-            "name": item.name,
-            "price": item.price,
+            "name": menu_item.name,
+            "price": unit_price,
             "quantity": item.quantity,
             "half_full": item.half_full,
-            "notes": item.notes
+            "linked_drink_item_id": linked_drink_item_id,
+            "linked_drink_name": linked_drink_name,
+            "drink_temp": drink_temp,
+            "notes": item.notes,
+            "pricing_note": pricing_note
         })
     
     # Validate and apply discount
@@ -962,7 +1284,7 @@ async def create_order(order: OrderCreate, db: AsyncSession = Depends(get_db)):
     
     # Generate order number
     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    order_number = f"ORD{timestamp}{order.table_number}"
+    order_number = f"ORD{timestamp}{order.table_number}{uuid4().hex[:4].upper()}"
     
     # Create order
     db_order = Order(
@@ -1553,7 +1875,7 @@ async def generate_bill(order_number: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Order not found")
     
     bill_data = {
-        "restaurant_name": "Delicacy Restaurant",
+        "restaurant_name": "熊熊冰室",
         "order_number": order.order_number,
         "table_number": order.table_number,
         "customer_name": order.customer_name,

@@ -1,4 +1,4 @@
-# Delicacy Restaurant - Complete Setup Guide
+# 熊熊冰室 - Complete Setup Guide
 
 ## Prerequisites
 

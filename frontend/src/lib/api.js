@@ -1,5 +1,5 @@
 /**
- * Delicacy Restaurant - API Client
+ * 熊熊冰室 - API Client
  * Production-ready API client with error handling and loading states
  */
 
@@ -255,6 +255,17 @@ export async function getAnalytics(period = 'daily') {
   return fetchAPI(`/api/admin/analytics?period=${period}`)
 }
 
+export async function getPricingSettings() {
+  return fetchAPI('/api/admin/pricing-settings')
+}
+
+export async function updatePricingSettings(data) {
+  return fetchAPI('/api/admin/pricing-settings', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
 export async function exportData(format = 'csv') {
   const url = `${API_BASE_URL}/api/admin/export?format=${format}`
   const response = await fetch(url)
@@ -332,6 +343,8 @@ export default {
   getAdminStats,
   getSalesReport,
   getAnalytics,
+  getPricingSettings,
+  updatePricingSettings,
   exportData,
   trackOrder,
   getBill,

@@ -11,13 +11,14 @@ import { useToastStore } from '../../store/store'
 
 const categories = [
   { id: 'all', name: '全部' },
-  { id: 'soups', name: '湯品' },
-  { id: 'starters', name: '開胃菜' },
-  { id: 'main_course', name: '主菜' },
-  { id: 'biryani', name: '印度香飯' },
-  { id: 'rice_noodles', name: '飯類與麵類' },
-  { id: 'rolls', name: '捲餅' },
-  { id: 'breads', name: '麵包類' },
+  { id: 'soups', name: '湯品與粥品' },
+  { id: 'starters', name: '小食' },
+  { id: 'main_course', name: '主食' },
+  { id: 'biryani', name: '港式飯類' },
+  { id: 'rice_noodles', name: '飯類與粉麵' },
+  { id: 'rolls', name: '三文治與卷類' },
+  { id: 'breads', name: '包點與多士' },
+  { id: 'combos', name: '套餐' },
   { id: 'beverages', name: '飲品' },
 ]
 

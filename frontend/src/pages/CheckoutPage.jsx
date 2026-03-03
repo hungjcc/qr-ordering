@@ -274,11 +274,12 @@ export default function CheckoutPage() {
                   name="customerPhone"
                   value={formData.customerPhone}
                   onChange={handleInputChange}
-                  placeholder="Enter your phone number"
+                  placeholder="e.g. 91234567 or +852 91234567"
                   className="input-field"
-                  pattern="[0-9]{10}"
+                  inputMode="tel"
                   required
                 />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">HK mobile: 8 digits (optional +852)</p>
               </div>
               
               {/* Special Notes */}

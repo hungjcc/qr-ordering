@@ -100,7 +100,7 @@ export default function OrderStatusPage() {
       </head>
       <body>
         <div class="header">
-          <div class="title">DELICACY RESTAURANT</div>
+          <div class="title">熊熊冰室</div>
           <div>感謝您的光臨！</div>
         </div>
         <div class="details">

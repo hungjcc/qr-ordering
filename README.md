@@ -1,4 +1,4 @@
-# Delicacy Restaurant - QR Based Ordering System
+# 熊熊冰室 - QR Based Ordering System
 
 ## Production-Ready Restaurant Management System
 

@@ -83,7 +83,7 @@ class RestaurantSettings(Base):
     __tablename__ = "restaurant_settings"
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), default="DELICACY RESTAURANT")
+    name = Column(String(100), default="熊熊冰室")
     phone1 = Column(String(20))
     phone2 = Column(String(20))
     timing_open = Column(String(20), default="11:30 AM")

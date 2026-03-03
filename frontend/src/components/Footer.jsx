@@ -59,7 +59,7 @@ export default function Footer() {
             allowFullScreen=""
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            title="Delicacy 餐廳位置"
+            title="熊熊冰室位置"
             className="grayscale opacity-70 hover:grayscale-0 transition-all duration-300"
           />
         </div>
@@ -67,7 +67,7 @@ export default function Footer() {
         {/* Copyright */}
         <div className="border-t border-gray-800 dark:border-gray-700 pt-6 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            © {new Date().getFullYear()} Delicacy Restaurant。版權所有。
+            © {new Date().getFullYear()} 熊熊冰室。版權所有。
           </p>
         </div>
       </div>

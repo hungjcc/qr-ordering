@@ -1,6 +1,6 @@
 {
-  "name": "Delicacy Restaurant",
-  "short_name": "Delicacy",
+  "name": "熊熊冰室",
+  "short_name": "熊熊",
   "description": "QR Based Restaurant Ordering System",
   "start_url": "/",
   "display": "standalone",

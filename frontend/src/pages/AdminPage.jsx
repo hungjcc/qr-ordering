@@ -28,6 +28,7 @@ import TableManagement from './admin/TableManagement'
 import DiscountManagement from './admin/DiscountManagement'
 import Analytics from './admin/Analytics'
 import QRGenerator from './admin/QRGenerator'
+import SettingsPage from './admin/Settings'
 
 export default function AdminPage() {
   const location = useLocation()
@@ -44,6 +45,7 @@ export default function AdminPage() {
     { path: '/admin/tables', icon: <TableIcon className="w-5 h-5" />, label: '餐桌' },
     { path: '/admin/discounts', icon: <Tag className="w-5 h-5" />, label: '折扣' },
     { path: '/admin/analytics', icon: <PieChart className="w-5 h-5" />, label: '分析' },
+    { path: '/admin/settings', icon: <Settings className="w-5 h-5" />, label: '設定' },
     { path: '/admin/qr', icon: <QrCode className="w-5 h-5" />, label: 'QR 碼' },
   ]
 
@@ -141,6 +143,7 @@ export default function AdminPage() {
             <Route path="/tables" element={<TableManagement />} />
             <Route path="/discounts" element={<DiscountManagement />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="/qr" element={<QRGenerator />} />
           </Routes>
         </main>

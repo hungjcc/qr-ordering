@@ -36,7 +36,7 @@ export default function CustomerLayout() {
                 <Utensils className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">DELICACY</h1>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">熊熊冰室</h1>
                 {tableNumber && (
                   <p className="text-xs text-primary-600 dark:text-primary-400">
                     Table {tableNumber}
@@ -89,7 +89,7 @@ export default function CustomerLayout() {
       <footer className="bg-gray-900 text-white py-8">
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center">
-            <h2 className="text-xl font-bold mb-2">DELICACY RESTAURANT</h2>
+            <h2 className="text-xl font-bold mb-2">熊熊冰室</h2>
             <p className="text-gray-400 text-sm mb-2">
               Shop No. 2,3,4, Angan Apt, Radha Nagar, Tulinj Road
             </p>

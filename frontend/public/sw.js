@@ -78,7 +78,7 @@ self.addEventListener('push', (event) => {
   }
   
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Delicacy Restaurant', options)
+    self.registration.showNotification(data.title || '熊熊冰室', options)
   )
 })
 

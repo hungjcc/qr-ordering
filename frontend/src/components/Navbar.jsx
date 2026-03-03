@@ -36,7 +36,7 @@ export default function Navbar({ showMenuToggle = true, showCart = true }) {
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Delicacy
+                  熊熊冰室
                 </h1>
                 <p className="text-xs text-gray-500 dark:text-gray-400">餐廳</p>
               </div>

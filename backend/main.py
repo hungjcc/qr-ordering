@@ -1,5 +1,5 @@
 """
-DELICACY RESTAURANT - QR Based Ordering System
+熊熊冰室 - QR Based Ordering System
 Main FastAPI Application
 """
 import os
@@ -20,7 +20,7 @@ from websocket_manager import ws_manager
 
 # Create FastAPI app
 app = FastAPI(
-    title="DELICACY RESTAURANT - QR Ordering System",
+    title="熊熊冰室 - QR Ordering System",
     description="Real-time restaurant ordering system with QR codes",
     version="1.0.0"
 )
@@ -43,18 +43,18 @@ app.mount("/static", StaticFiles(directory="backend/static"), name="static")
 
 # ==================== DEFAULT MENU ITEMS ====================
 DEFAULT_MENU = [
-    {"name": "Chicken Dum Biryani", "description": "Aromatic basmati rice with tender chicken", "category": "non-veg", "price_half": 140, "price_full": 220, "is_popular": True, "prep_time": 25},
-    {"name": "Chicken Triple Rice", "description": "Rice with chicken, eggs, and vegetables", "category": "non-veg", "price_half": 120, "price_full": 200, "prep_time": 20},
-    {"name": "Chicken Lollypop", "description": "Crispy chicken lollipops", "category": "non-veg", "price_half": 80, "price_full": 160, "is_popular": True, "prep_time": 15},
-    {"name": "Butter Chicken", "description": "Creamy tomato gravy with tender chicken", "category": "non-veg", "price_half": 200, "price_full": 380, "is_popular": True, "prep_time": 20},
-    {"name": "Chicken Classic Shawarma", "description": "Classic chicken shawarma wrap", "category": "non-veg", "price_full": 60, "is_popular": True, "prep_time": 10},
-    {"name": "Paneer Butter Masala", "description": "Soft paneer in rich creamy gravy", "category": "veg", "price_full": 200, "prep_time": 18},
-    {"name": "Chicken Manchow Soup", "description": "Spicy Indo-Chinese soup", "category": "non-veg", "price_full": 100, "prep_time": 8},
-    {"name": "Chicken Crispy", "description": "Crispy fried chicken", "category": "non-veg", "price_half": 110, "price_full": 170, "prep_time": 15},
-    {"name": "Veg Manchurian Dry/Gravy", "description": "Vegetable balls in sauces", "category": "veg", "price_half": 80, "price_full": 140, "prep_time": 15},
-    {"name": "Dal Tadka", "description": "Tempered lentil curry", "category": "veg", "price_full": 120, "prep_time": 12},
-    {"name": "Jeera Rice", "description": "Cumin flavored rice", "category": "veg", "price_full": 90, "prep_time": 10},
-    {"name": "Plain Roti", "description": "Whole wheat flatbread", "category": "veg", "price_full": 10, "prep_time": 5},
+    {"name": "焗豬扒飯", "description": "經典港式焗飯", "category": "non-veg", "price_half": 52, "price_full": 86, "is_popular": True, "prep_time": 20},
+    {"name": "滑蛋蝦仁飯", "description": "滑蛋配鮮蝦仁", "category": "non-veg", "price_half": 48, "price_full": 78, "prep_time": 14},
+    {"name": "黃金雞翼", "description": "香脆惹味雞中翼", "category": "non-veg", "price_half": 38, "price_full": 62, "is_popular": True, "prep_time": 12},
+    {"name": "黑椒牛柳意粉", "description": "香濃黑椒汁配牛柳", "category": "non-veg", "price_half": 48, "price_full": 78, "is_popular": True, "prep_time": 15},
+    {"name": "餐蛋三文治", "description": "午餐肉雞蛋三文治", "category": "non-veg", "price_full": 30, "is_popular": True, "prep_time": 6},
+    {"name": "西多士", "description": "港式花生醬西多士", "category": "veg", "price_full": 34, "prep_time": 8},
+    {"name": "羅宋湯", "description": "經典港式蕃茄牛肉蔬菜湯", "category": "non-veg", "price_full": 38, "prep_time": 8},
+    {"name": "咖哩魚蛋", "description": "街頭風味彈牙魚蛋", "category": "non-veg", "price_half": 28, "price_full": 45, "prep_time": 8},
+    {"name": "椒鹽豆腐", "description": "外脆內嫩豆腐粒", "category": "veg", "price_half": 30, "price_full": 48, "prep_time": 10},
+    {"name": "揚州炒飯", "description": "叉燒蝦仁蛋炒飯", "category": "non-veg", "price_full": 68, "prep_time": 12},
+    {"name": "港式絲襪奶茶", "description": "茶香濃郁、口感順滑", "category": "veg", "price_full": 24, "prep_time": 4},
+    {"name": "菠蘿包", "description": "港式經典甜包", "category": "veg", "price_full": 16, "prep_time": 4},
 ]
 
 # ==================== STARTUP EVENT ====================
@@ -84,7 +84,7 @@ async def startup():
             
             # Seed restaurant settings
             settings = RestaurantSettings(
-                name="DELICACY RESTAURANT",
+                name="熊熊冰室",
                 phone1="7030802567",
                 phone2="7798757769",
                 timing_open="11:30 AM",
