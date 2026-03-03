@@ -482,8 +482,8 @@ async def create_payment(
         "success": True,
         "payment_id": razorpay_order_id,
         "order_id": order.id,
-        "amount": int(order.total * 100),  # Razorpay uses paise
-        "currency": "INR",
+        "amount": int(order.total * 100),  # Razorpay uses cents
+        "currency": "HKD",
         "key_id": settings.razorpay_key_id
     }
 

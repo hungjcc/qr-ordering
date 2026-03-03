@@ -10,7 +10,7 @@ export default function Footer() {
           <div className="flex items-start gap-3">
             <MapPin className="w-5 h-5 text-primary-500 mt-1" />
             <div>
-              <h3 className="font-semibold text-white dark:text-white mb-1">Address</h3>
+              <h3 className="font-semibold text-white dark:text-white mb-1">地址</h3>
               <p className="text-sm text-gray-300 dark:text-gray-300">
                 Shop No. 2,3,4, Angan Apt, Radha Nagar,<br />
                 Tulinj Road, Near Amantaran Bar,<br />
@@ -23,7 +23,7 @@ export default function Footer() {
           <div className="flex items-start gap-3">
             <Phone className="w-5 h-5 text-primary-500 mt-1" />
             <div>
-              <h3 className="font-semibold text-white dark:text-white mb-1">Contact</h3>
+              <h3 className="font-semibold text-white dark:text-white mb-1">聯絡方式</h3>
               <p className="text-sm text-gray-300 dark:text-gray-300">
                 <a href="tel:917030802567" className="hover:text-primary-400 transition-colors text-gray-300 dark:text-gray-300">
                   +91 7030802567
@@ -40,9 +40,9 @@ export default function Footer() {
           <div className="flex items-start gap-3">
             <Clock className="w-5 h-5 text-primary-500 mt-1" />
             <div>
-              <h3 className="font-semibold text-white dark:text-white mb-1">Hours</h3>
+              <h3 className="font-semibold text-white dark:text-white mb-1">營業時間</h3>
               <p className="text-sm text-gray-300 dark:text-gray-300">
-                Open Daily<br />
+                每日營業<br />
                 11:30 AM - 11:30 PM
               </p>
             </div>
@@ -59,7 +59,7 @@ export default function Footer() {
             allowFullScreen=""
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            title="Delicacy Restaurant Location"
+            title="Delicacy 餐廳位置"
             className="grayscale opacity-70 hover:grayscale-0 transition-all duration-300"
           />
         </div>
@@ -67,7 +67,7 @@ export default function Footer() {
         {/* Copyright */}
         <div className="border-t border-gray-800 dark:border-gray-700 pt-6 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            © {new Date().getFullYear()} Delicacy Restaurant. All rights reserved.
+            © {new Date().getFullYear()} Delicacy Restaurant。版權所有。
           </p>
         </div>
       </div>

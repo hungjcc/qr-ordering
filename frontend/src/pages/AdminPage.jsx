@@ -38,13 +38,13 @@ export default function AdminPage() {
   const { addToast } = useToastStore()
 
   const navItems = [
-    { path: '/admin', icon: <BarChart3 className="w-5 h-5" />, label: 'Dashboard', exact: true },
-    { path: '/admin/orders', icon: <FileText className="w-5 h-5" />, label: 'Orders' },
-    { path: '/admin/menu', icon: <Menu className="w-5 h-5" />, label: 'Menu' },
-    { path: '/admin/tables', icon: <TableIcon className="w-5 h-5" />, label: 'Tables' },
-    { path: '/admin/discounts', icon: <Tag className="w-5 h-5" />, label: 'Discounts' },
-    { path: '/admin/analytics', icon: <PieChart className="w-5 h-5" />, label: 'Analytics' },
-    { path: '/admin/qr', icon: <QrCode className="w-5 h-5" />, label: 'QR Codes' },
+    { path: '/admin', icon: <BarChart3 className="w-5 h-5" />, label: '儀表板', exact: true },
+    { path: '/admin/orders', icon: <FileText className="w-5 h-5" />, label: '訂單' },
+    { path: '/admin/menu', icon: <Menu className="w-5 h-5" />, label: '菜單' },
+    { path: '/admin/tables', icon: <TableIcon className="w-5 h-5" />, label: '餐桌' },
+    { path: '/admin/discounts', icon: <Tag className="w-5 h-5" />, label: '折扣' },
+    { path: '/admin/analytics', icon: <PieChart className="w-5 h-5" />, label: '分析' },
+    { path: '/admin/qr', icon: <QrCode className="w-5 h-5" />, label: 'QR 碼' },
   ]
 
   return (
@@ -70,7 +70,7 @@ export default function AdminPage() {
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <Settings className="w-5 h-5" />
-              Admin Panel
+              管理後台
             </h2>
           </div>
 
@@ -81,7 +81,7 @@ export default function AdminPage() {
               className="w-full flex items-center justify-between px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700"
             >
               <span className="text-sm text-gray-700 dark:text-gray-300">
-                {darkMode ? 'Light Mode' : 'Dark Mode'}
+                {darkMode ? '淺色模式' : '深色模式'}
               </span>
               {darkMode ? (
                 <SunIcon className="w-5 h-5 text-yellow-500" />
@@ -111,7 +111,7 @@ export default function AdminPage() {
               onClick={() => setSidebarOpen(false)}
             >
               <RefreshCw className="w-5 h-5" />
-              <span className="font-medium">Kitchen View</span>
+              <span className="font-medium">廚房檢視</span>
             </Link>
             <Link
               to="/table/1"
@@ -119,7 +119,7 @@ export default function AdminPage() {
               onClick={() => setSidebarOpen(false)}
             >
               <Home className="w-5 h-5" />
-              <span className="font-medium">Customer View</span>
+              <span className="font-medium">顧客檢視</span>
             </Link>
           </div>
         </aside>

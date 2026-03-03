@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-1. **Python 3.8 or higher** (for backend)
+1. **Python 3.11 to 3.13** (for backend)
 2. **Node.js 18 or higher** (for frontend)
 3. **Git** (optional, for version control)
 
@@ -17,11 +17,11 @@ cd delicacy-restaurant/backend
 
 ### 1.2 Create virtual environment (recommended)
 ```bash
-python -m venv venv
+python -m venv .venv
 # Windows
-venv\Scripts\activate
+.venv\Scripts\activate
 # Linux/Mac
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 ### 1.3 Install dependencies
@@ -272,6 +272,14 @@ netstat -ano | findstr :8000
 # Kill process if needed
 taskkill /PID <PID> /F
 ```
+
+- If you see `zsh: command not found: uvicorn`, activate the virtual environment first and install backend dependencies:
+```bash
+cd backend
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+- Use Python `3.11` to `3.13`. Python `3.14` can fail with pinned dependencies in this project.
 
 ### Frontend won't start
 ```bash

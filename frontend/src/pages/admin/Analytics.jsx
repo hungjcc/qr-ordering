@@ -40,9 +40,9 @@ export default function Analytics() {
       a.download = filename
       a.click()
       URL.revokeObjectURL(url)
-      addToast({ type: 'success', message: 'Report exported successfully' })
+      addToast({ type: 'success', message: '報表匯出成功' })
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to export report' })
+      addToast({ type: 'error', message: '報表匯出失敗' })
     }
   }
 
@@ -70,8 +70,8 @@ export default function Analytics() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h1>
-          <p className="text-gray-500">Revenue and order analytics</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">分析報表</h1>
+          <p className="text-gray-500">營收與訂單分析</p>
         </div>
         <div className="flex gap-3">
           <select
@@ -79,16 +79,16 @@ export default function Analytics() {
             onChange={(e) => setPeriod(e.target.value)}
             className="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
           >
-            <option value="daily">Last 7 Days</option>
-            <option value="weekly">Last 4 Weeks</option>
-            <option value="monthly">Last 3 Months</option>
+            <option value="daily">最近 7 天</option>
+            <option value="weekly">最近 4 週</option>
+            <option value="monthly">最近 3 個月</option>
           </select>
           <button
             onClick={handleExport}
             className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
           >
             <Download className="w-5 h-5" />
-            Export
+            匯出
           </button>
         </div>
       </div>
@@ -102,9 +102,9 @@ export default function Analytics() {
         >
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-5 h-5" />
-            <span className="text-sm text-green-100">Total Revenue</span>
+            <span className="text-sm text-green-100">總營收</span>
           </div>
-          <p className="text-2xl font-bold">₹{analytics?.total_revenue?.toFixed(0) || 0}</p>
+          <p className="text-2xl font-bold">${analytics?.total_revenue?.toFixed(0) || 0}</p>
         </motion.div>
 
         <motion.div
@@ -115,7 +115,7 @@ export default function Analytics() {
         >
           <div className="flex items-center gap-2 mb-2">
             <ShoppingCart className="w-5 h-5" />
-            <span className="text-sm text-blue-100">Total Orders</span>
+            <span className="text-sm text-blue-100">總訂單數</span>
           </div>
           <p className="text-2xl font-bold">{analytics?.total_orders || 0}</p>
         </motion.div>
@@ -128,10 +128,10 @@ export default function Analytics() {
         >
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-5 h-5" />
-            <span className="text-sm text-orange-100">Avg Order Value</span>
+            <span className="text-sm text-orange-100">平均客單價</span>
           </div>
           <p className="text-2xl font-bold">
-            ₹{analytics?.total_orders > 0 
+            ${analytics?.total_orders > 0 
               ? (analytics.total_revenue / analytics.total_orders).toFixed(0) 
               : 0}
           </p>
@@ -145,7 +145,7 @@ export default function Analytics() {
         >
           <div className="flex items-center gap-2 mb-2">
             <BarChart3 className="w-5 h-5" />
-            <span className="text-sm text-purple-100">Items Tracked</span>
+            <span className="text-sm text-purple-100">追蹤品項數</span>
           </div>
           <p className="text-2xl font-bold">{analytics?.top_items?.length || 0}</p>
         </motion.div>
@@ -154,7 +154,7 @@ export default function Analytics() {
       {/* Revenue Chart */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Revenue Over Time
+          營收趨勢
         </h2>
         {periodLabels.length > 0 ? (
           <div className="h-64 flex items-end gap-2">
@@ -174,7 +174,7 @@ export default function Analytics() {
           </div>
         ) : (
           <div className="h-64 flex items-center justify-center">
-            <p className="text-gray-500">No data available</p>
+            <p className="text-gray-500">暫無資料</p>
           </div>
         )}
       </div>
@@ -183,7 +183,7 @@ export default function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Top Selling Items
+            熱銷品項
           </h2>
           {analytics?.top_items && analytics.top_items.length > 0 ? (
             <div className="space-y-3">
@@ -206,38 +206,40 @@ export default function Analytics() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">No sales data available</p>
+            <p className="text-gray-500 text-center py-8">暫無銷售資料</p>
           )}
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Sales Summary
+            銷售摘要
           </h2>
           <div className="space-y-4">
             <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-              <span className="text-gray-600 dark:text-gray-300">Total Revenue</span>
+              <span className="text-gray-600 dark:text-gray-300">總營收</span>
               <span className="font-bold text-gray-900 dark:text-white">
-                ₹{sales?.total_revenue?.toFixed(2) || 0}
+                ${sales?.total_revenue?.toFixed(2) || 0}
               </span>
             </div>
             <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-              <span className="text-gray-600 dark:text-gray-300">Total Orders</span>
+              <span className="text-gray-600 dark:text-gray-300">總訂單數</span>
               <span className="font-bold text-gray-900 dark:text-white">
                 {sales?.total_orders || 0}
               </span>
             </div>
             <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-              <span className="text-gray-600 dark:text-gray-300">Avg Order Value</span>
+              <span className="text-gray-600 dark:text-gray-300">平均客單價</span>
               <span className="font-bold text-gray-900 dark:text-white">
-                ₹{sales?.total_orders > 0 
+                ${sales?.total_orders > 0 
                   ? (sales.total_revenue / sales.total_orders).toFixed(2) 
                   : 0}
               </span>
             </div>
             <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-              <span className="text-gray-600 dark:text-gray-300">Period</span>
-              <span className="font-bold text-gray-900 dark:text-white capitalize">{period}</span>
+              <span className="text-gray-600 dark:text-gray-300">區間</span>
+              <span className="font-bold text-gray-900 dark:text-white">
+                {period === 'daily' ? '最近 7 天' : period === 'weekly' ? '最近 4 週' : '最近 3 個月'}
+              </span>
             </div>
           </div>
         </div>

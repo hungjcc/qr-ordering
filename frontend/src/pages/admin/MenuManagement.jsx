@@ -10,15 +10,15 @@ import {
 import { useToastStore } from '../../store/store'
 
 const categories = [
-  { id: 'all', name: 'All' },
-  { id: 'soups', name: 'Soups' },
-  { id: 'starters', name: 'Starters' },
-  { id: 'main_course', name: 'Main Course' },
-  { id: 'biryani', name: 'Biryani' },
-  { id: 'rice_noodles', name: 'Rice & Noodles' },
-  { id: 'rolls', name: 'Rolls' },
-  { id: 'breads', name: 'Breads' },
-  { id: 'beverages', name: 'Beverages' },
+  { id: 'all', name: '全部' },
+  { id: 'soups', name: '湯品' },
+  { id: 'starters', name: '開胃菜' },
+  { id: 'main_course', name: '主菜' },
+  { id: 'biryani', name: '印度香飯' },
+  { id: 'rice_noodles', name: '飯類與麵類' },
+  { id: 'rolls', name: '捲餅' },
+  { id: 'breads', name: '麵包類' },
+  { id: 'beverages', name: '飲品' },
 ]
 
 export default function MenuManagement() {
@@ -37,7 +37,7 @@ export default function MenuManagement() {
       setMenu(data || [])
     } catch (error) {
       console.error('Failed to fetch menu:', error)
-      addToast({ type: 'error', message: 'Failed to load menu' })
+      addToast({ type: 'error', message: '載入菜單失敗' })
     } finally {
       setLoading(false)
     }
@@ -46,34 +46,34 @@ export default function MenuManagement() {
   useEffect(() => { fetchMenu() }, [fetchMenu])
 
   const handleResetMenu = async () => {
-    if (!window.confirm('This will reset the menu to default items. Continue?')) return
+    if (!window.confirm('這會將菜單重設為預設內容，是否繼續？')) return
     try {
       const result = await resetMenu()
       addToast({ type: 'success', message: result.message })
       fetchMenu()
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to reset menu' })
+      addToast({ type: 'error', message: '重設菜單失敗' })
     }
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) return
+    if (!window.confirm('確定要刪除此品項嗎？')) return
     try {
       await deleteMenuItem(id)
-      addToast({ type: 'success', message: 'Item deleted successfully' })
+      addToast({ type: 'success', message: '品項刪除成功' })
       fetchMenu()
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to delete item' })
+      addToast({ type: 'error', message: '刪除品項失敗' })
     }
   }
 
   const handleToggleAvailability = async (id) => {
     try {
       await toggleMenuItemAvailability(id)
-      addToast({ type: 'success', message: 'Availability updated' })
+      addToast({ type: 'success', message: '供應狀態已更新' })
       fetchMenu()
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to update availability' })
+      addToast({ type: 'error', message: '更新供應狀態失敗' })
     }
   }
 
@@ -86,22 +86,22 @@ export default function MenuManagement() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Menu Management</h1>
-          <p className="text-gray-500">Manage your restaurant menu items</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">菜單管理</h1>
+          <p className="text-gray-500">管理餐廳菜單品項</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={handleResetMenu}
             className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
           >
-            Reset Menu
+            重設菜單
           </button>
           <button
             onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
           >
             <Plus className="w-5 h-5" />
-            Add Item
+            新增品項
           </button>
         </div>
       </div>
@@ -112,7 +112,7 @@ export default function MenuManagement() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search items..."
+            placeholder="搜尋品項..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
@@ -138,7 +138,7 @@ export default function MenuManagement() {
         </div>
       ) : filteredMenu.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl">
-          <p className="text-gray-500">No items found</p>
+          <p className="text-gray-500">找不到品項</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -202,12 +202,12 @@ function MenuCard({ item, onEdit, onDelete, onToggle }) {
         <div className="text-sm">
           {item.has_half_full ? (
             <div className="flex gap-2 text-gray-600 dark:text-gray-300">
-              <span>Half: ₹{item.price_half}</span>
+              <span>半份：${item.price_half}</span>
               <span>|</span>
-              <span>Full: ₹{item.price_full}</span>
+              <span>全份：${item.price_full}</span>
             </div>
           ) : (
-            <span className="font-bold text-primary-600">₹{item.price}</span>
+            <span className="font-bold text-primary-600">${item.price}</span>
           )}
         </div>
         
@@ -261,14 +261,14 @@ function MenuModal({ item, onClose, onSave }) {
 
       if (item) {
         await updateMenuItem(item.id, data)
-        addToast({ type: 'success', message: 'Item updated successfully' })
+        addToast({ type: 'success', message: '品項更新成功' })
       } else {
         await createMenuItem(data)
-        addToast({ type: 'success', message: 'Item created successfully' })
+        addToast({ type: 'success', message: '品項建立成功' })
       }
       onSave()
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to save item' })
+      addToast({ type: 'error', message: '儲存品項失敗' })
     } finally {
       setLoading(false)
     }
@@ -297,12 +297,12 @@ function MenuModal({ item, onClose, onSave }) {
         </button>
 
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-          {item ? 'Edit Item' : 'Add New Item'}
+          {item ? '編輯品項' : '新增品項'}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">名稱</label>
             <input
               type="text"
               value={formData.name}
@@ -313,7 +313,7 @@ function MenuModal({ item, onClose, onSave }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">描述</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -324,7 +324,7 @@ function MenuModal({ item, onClose, onSave }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">價格</label>
               <input
                 type="number"
                 value={formData.price}
@@ -334,7 +334,7 @@ function MenuModal({ item, onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prep Time (min)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">製作時間（分鐘）</label>
               <input
                 type="number"
                 value={formData.preparation_time}
@@ -346,7 +346,7 @@ function MenuModal({ item, onClose, onSave }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Half Price</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">半份價格</label>
               <input
                 type="number"
                 value={formData.price_half}
@@ -356,7 +356,7 @@ function MenuModal({ item, onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Price</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">全份價格</label>
               <input
                 type="number"
                 value={formData.price_full}
@@ -375,7 +375,7 @@ function MenuModal({ item, onClose, onSave }) {
                 onChange={(e) => setFormData({ ...formData, has_half_full: e.target.checked })}
                 className="rounded"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Has Half/Full</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">有半份／全份</span>
             </label>
             <label className="flex items-center gap-2">
               <input
@@ -384,7 +384,7 @@ function MenuModal({ item, onClose, onSave }) {
                 onChange={(e) => setFormData({ ...formData, is_vegetarian: e.target.checked })}
                 className="rounded"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Vegetarian</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">素食</span>
             </label>
           </div>
 
@@ -394,14 +394,14 @@ function MenuModal({ item, onClose, onSave }) {
               onClick={onClose}
               className="flex-1 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              Cancel
+              取消
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 py-2 px-4 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
             >
-              {loading ? 'Saving...' : 'Save'}
+              {loading ? '儲存中...' : '儲存'}
             </button>
           </div>
         </form>

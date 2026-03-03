@@ -14,30 +14,30 @@ import { useCartStore, useThemeStore, useToastStore } from '../store/store'
 
 // Categories with proper hierarchy
 const categories = [
-  { id: 'all', name: 'All Items', icon: '🍽️', subcategories: [] },
-  { id: 'soup', name: 'Soups', icon: '🥣', subcategories: ['veg', 'non-veg'] },
-  { id: 'starters', name: 'Starters', icon: '🍗', subcategories: ['chicken', 'veg', 'tandoori', 'kebab'] },
-  { id: 'rice_noodles', name: 'Rice & Noodles', icon: '🍚', subcategories: ['veg', 'chicken', 'egg'] },
-  { id: 'main_course', name: 'Main Course', icon: '🍛', subcategories: ['veg', 'chicken', 'mutton'] },
+  { id: 'all', name: '全部餐點', icon: '🍽️', subcategories: [] },
+  { id: 'soup', name: '湯品', icon: '🥣', subcategories: ['veg', 'non-veg'] },
+  { id: 'starters', name: '開胃菜', icon: '🍗', subcategories: ['chicken', 'veg', 'tandoori', 'kebab'] },
+  { id: 'rice_noodles', name: '飯類與麵類', icon: '🍚', subcategories: ['veg', 'chicken', 'egg'] },
+  { id: 'main_course', name: '主菜', icon: '🍛', subcategories: ['veg', 'chicken', 'mutton'] },
   { id: 'biryani', name: 'Biryani', icon: '🍲', subcategories: ['veg', 'chicken', 'mutton', 'egg', 'fish', 'prawns'] },
-  { id: 'rolls', name: 'Rolls & Shawarma', icon: '🌯', subcategories: ['paneer', 'chicken', 'egg', 'shawarma', 'frankie'] },
-  { id: 'breads', name: 'Breads', icon: '🫓', subcategories: ['roti', 'naan', 'paratha', 'kulcha', 'extras'] },
-  { id: 'combos', name: 'Combos', icon: '📦', subcategories: ['thali', 'pack', 'rice_combo', 'noodles_combo', 'platter', 'biryani_combo', 'breakfast', 'kids', 'lunchbox', 'chinese_combo'] },
-  { id: 'south_indian', name: 'South Indian', icon: '🍛', subcategories: ['dosa', 'idli', 'vada', 'uttapam', 'rice'] },
-  { id: 'beverages', name: 'Beverages', icon: '🥤', subcategories: ['tea', 'coffee', 'lassi', 'cold_drink', 'water', 'lime', 'ice_cream', 'falooda', 'milk'] },
+  { id: 'rolls', name: '捲餅與沙威瑪', icon: '🌯', subcategories: ['paneer', 'chicken', 'egg', 'shawarma', 'frankie'] },
+  { id: 'breads', name: '麵包類', icon: '🫓', subcategories: ['roti', 'naan', 'paratha', 'kulcha', 'extras'] },
+  { id: 'combos', name: '套餐', icon: '📦', subcategories: ['thali', 'pack', 'rice_combo', 'noodles_combo', 'platter', 'biryani_combo', 'breakfast', 'kids', 'lunchbox', 'chinese_combo'] },
+  { id: 'south_indian', name: '南印度料理', icon: '🍛', subcategories: ['dosa', 'idli', 'vada', 'uttapam', 'rice'] },
+  { id: 'beverages', name: '飲品', icon: '🥤', subcategories: ['tea', 'coffee', 'lassi', 'cold_drink', 'water', 'lime', 'ice_cream', 'falooda', 'milk'] },
 ]
 
 const vegFilterOptions = [
-  { id: 'all', name: 'All', icon: '🍽️' },
-  { id: 'veg', name: 'Veg Only', icon: '🥬' },
-  { id: 'non-veg', name: 'Non-Veg Only', icon: '🍗' },
+  { id: 'all', name: '全部', icon: '🍽️' },
+  { id: 'veg', name: '只看素食', icon: '🥬' },
+  { id: 'non-veg', name: '只看葷食', icon: '🍗' },
 ]
 
 const statusSteps = [
-  { key: 'pending', label: 'Order Placed', icon: Clock },
-  { key: 'accepted', label: 'Confirmed', icon: CheckCircle },
-  { key: 'preparing', label: 'Preparing', icon: ChefHat },
-  { key: 'ready', label: 'Ready', icon: Star },
+  { key: 'pending', label: '待處理', icon: Clock },
+  { key: 'accepted', label: '已接受', icon: CheckCircle },
+  { key: 'preparing', label: '製作中', icon: ChefHat },
+  { key: 'ready', label: '可取餐', icon: Star },
 ]
 
 export default function CustomerPage() {
@@ -73,7 +73,7 @@ export default function CustomerPage() {
     // More robust online/offline detection
     const handleOnline = () => {
       setIsOnline(true)
-      addToast({ type: 'success', message: 'Back online!' })
+      addToast({ type: 'success', message: '已恢復連線！' })
     }
     const handleOffline = () => {
       // Don't immediately set offline - verify with a ping
@@ -120,23 +120,23 @@ export default function CustomerPage() {
       setFilteredMenu(data)
       setIsOnline(true) // Menu loaded successfully, we're online
       if (data.length === 0) {
-        addToast({ type: 'warning', message: 'Menu is empty. Please ask staff to add items.' })
+        addToast({ type: 'warning', message: '菜單目前為空，請通知店員新增餐點。' })
       }
     } catch (error) {
       console.error('Failed to load menu:', error)
-      setErrorDetails(error.message || 'Unknown error')
+      setErrorDetails(error.message || '未知錯誤')
       if (error.response) {
         if (error.response.status === 404) {
-          addToast({ type: 'error', message: 'Menu endpoint not found. Is the server running?' })
+          addToast({ type: 'error', message: '找不到菜單 API，請確認伺服器是否已啟動。' })
         } else if (error.response.status === 500) {
-          addToast({ type: 'error', message: 'Server error. Please try again later.' })
+          addToast({ type: 'error', message: '伺服器錯誤，請稍後再試。' })
         } else {
-          addToast({ type: 'error', message: `Error: ${error.response.status}` })
+          addToast({ type: 'error', message: `錯誤：${error.response.status}` })
         }
       } else if (error.request) {
-        addToast({ type: 'error', message: 'Cannot connect to server. Is the backend running on port 8000?' })
+        addToast({ type: 'error', message: '無法連線到伺服器，請確認後端是否在 8000 埠運行。' })
       } else {
-        addToast({ type: 'error', message: 'Failed to load menu' })
+        addToast({ type: 'error', message: '載入菜單失敗' })
       }
     } finally {
       setLoading(false)
@@ -195,7 +195,7 @@ export default function CustomerPage() {
       halfFull: halfFull,
       hasHalfFull: item.has_half_full
     })
-    addToast({ type: 'success', message: `${item.name} added!` })
+    addToast({ type: 'success', message: `${item.name} 已加入！` })
   }
   
   const handleCheckout = async (formData) => {
@@ -205,7 +205,7 @@ export default function CustomerPage() {
     }
     
     if (!isOnline) {
-      addToast({ type: 'error', message: 'Please check your internet connection' })
+      addToast({ type: 'error', message: '請檢查網路連線' })
       return
     }
     
@@ -234,7 +234,7 @@ export default function CustomerPage() {
         amount: paymentResult.amount,
         currency: paymentResult.currency,
         order_id: paymentResult.order_id,
-        name: 'Delicacy Restaurant',
+        name: 'Delicacy 餐廳',
         description: `Order #${orderResult.order_number}`,
         handler: async (response) => {
           try {
@@ -246,9 +246,9 @@ export default function CustomerPage() {
             setOrderPlaced(true)
             setCheckoutMode(false)
             clearCart()
-            addToast({ type: 'success', message: 'Payment successful! Order placed.' })
+            addToast({ type: 'success', message: '付款成功！訂單已送出。' })
           } catch (err) {
-            addToast({ type: 'error', message: 'Payment verification failed' })
+            addToast({ type: 'error', message: '付款驗證失敗' })
           }
         },
         prefill: {
@@ -262,11 +262,11 @@ export default function CustomerPage() {
         const razorpay = new window.Razorpay(options)
         razorpay.open()
       } else {
-        addToast({ type: 'error', message: 'Payment system loading' })
+        addToast({ type: 'error', message: '付款系統載入中' })
       }
       
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to place order' })
+      addToast({ type: 'error', message: '下單失敗' })
     }
   }
   
@@ -296,7 +296,7 @@ export default function CustomerPage() {
               animate={{ y: 0, opacity: 1 }}
               className="text-3xl font-bold mb-2 text-white"
             >
-              Order Confirmed!
+              訂單已送出！
             </motion.h2>
             
             <motion.p
@@ -313,7 +313,7 @@ export default function CustomerPage() {
               onClick={() => navigate(`/order/${currentOrder.order_number}`)}
               className="w-full py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-bold mb-3"
             >
-              Track Order
+              追蹤訂單
             </motion.button>
             
             <motion.button
@@ -325,7 +325,7 @@ export default function CustomerPage() {
               }}
               className="w-full py-4 rounded-xl font-bold bg-gray-800 text-white"
             >
-              Back to Menu
+              返回菜單
             </motion.button>
           </motion.div>
         </div>
@@ -343,7 +343,7 @@ export default function CustomerPage() {
           className="bg-red-500 text-white px-4 py-2 flex items-center justify-center gap-2"
         >
           <MicOff className="w-4 h-4" />
-          <span className="text-sm">Offline</span>
+          <span className="text-sm">離線中</span>
         </motion.div>
       )}
       
@@ -354,10 +354,10 @@ export default function CustomerPage() {
         animate={{ opacity: 1 }}
         className="bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 text-white py-6 px-4"
       >
-        <h1 className="text-xl sm:text-2xl font-bold mb-1">Delicacy Restaurant</h1>
+        <h1 className="text-xl sm:text-2xl font-bold mb-1">Delicacy 餐廳</h1>
         {tableNumber && (
           <p className="text-white/90 flex items-center gap-2 text-sm">
-            <MapPin className="w-4 h-4" /> Table {tableNumber}
+            <MapPin className="w-4 h-4" /> 餐桌 {tableNumber}
           </p>
         )}
       </motion.div>
@@ -371,7 +371,7 @@ export default function CustomerPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search dishes..."
+            placeholder="搜尋餐點..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl focus:ring-2 focus:ring-primary-500 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400"
@@ -409,7 +409,7 @@ export default function CustomerPage() {
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
               }`}
             >
-              All
+              全部
             </button>
             {categories.find(c => c.id === selectedCategory)?.subcategories.map((sub) => (
               <button
@@ -456,9 +456,9 @@ export default function CustomerPage() {
             onChange={(e) => setSortBy(e.target.value)}
             className="text-sm px-2 py-1.5 rounded-lg border-0 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
           >
-            <option value="name">Sort: Name</option>
-            <option value="price-low">Price: Low</option>
-            <option value="price-high">Price: High</option>
+            <option value="name">排序：名稱</option>
+            <option value="price-low">價格：低到高</option>
+            <option value="price-high">價格：高到低</option>
           </select>
         </div>
       </motion.div>
@@ -473,18 +473,18 @@ export default function CustomerPage() {
         ) : filteredMenu.length === 0 && !errorDetails ? (
           <div className="text-center py-16 text-gray-500 dark:text-gray-400">
             <Utensils className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p>No dishes found</p>
+            <p>找不到餐點</p>
           </div>
         ) : filteredMenu.length === 0 && errorDetails ? (
           <div className="text-center py-16 text-gray-500 dark:text-gray-400">
             <Utensils className="w-16 h-16 mx-auto mb-4 text-red-400" />
-            <p className="text-red-500 mb-4">Failed to load menu</p>
+            <p className="text-red-500 mb-4">菜單載入失敗</p>
             <p className="text-sm mb-4 opacity-70">{errorDetails}</p>
             <button
               onClick={handleRetry}
               className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
             >
-              Retry ({retryCount})
+              重試 ({retryCount})
             </button>
           </div>
         ) : (
@@ -542,7 +542,7 @@ export default function CustomerPage() {
           <ShoppingCart className="w-5 h-5" />
           <span className="font-bold">{cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
           <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
-            ₹{cartTotal.toFixed(0)}
+            ${cartTotal.toFixed(0)}
           </span>
         </motion.button>
       )}
@@ -571,14 +571,14 @@ function MenuCard({ item, index, onAddToCart }) {
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-2">
             {item.is_vegetarian ? (
-              <span className="text-xl" title="Veg">🥬</span>
+              <span className="text-xl" title="素食">🥬</span>
             ) : (
-              <span className="text-xl" title="Non-Veg">🍗</span>
+              <span className="text-xl" title="葷食">🍗</span>
             )}
             <div>
               <h3 className="font-bold text-gray-900 dark:text-white">{item.name}</h3>
               <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                <Clock className="w-3 h-3" />{item.preparation_time}min
+                <Clock className="w-3 h-3" />{item.preparation_time}分鐘
               </div>
             </div>
           </div>
@@ -590,11 +590,11 @@ function MenuCard({ item, index, onAddToCart }) {
           <div className="text-sm">
             {item.has_half_full ? (
               <div className="flex gap-3">
-                <span className="text-gray-400">Half: ₹{item.price_half}</span>
-                <span className="font-bold text-primary-600 dark:text-orange-400">Full: ₹{item.price_full}</span>
+                <span className="text-gray-400">半份：${item.price_half}</span>
+                <span className="font-bold text-primary-600 dark:text-orange-400">全份：${item.price_full}</span>
               </div>
             ) : (
-              <span className="text-lg font-bold text-primary-600 dark:text-orange-400">₹{item.price}</span>
+              <span className="text-lg font-bold text-primary-600 dark:text-orange-400">${item.price}</span>
             )}
           </div>
           
@@ -602,7 +602,7 @@ function MenuCard({ item, index, onAddToCart }) {
             onClick={() => setShowHalfFull(true)}
             className="flex items-center gap-1 px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium"
           >
-            <Plus className="w-4 h-4" /> Add
+            <Plus className="w-4 h-4" /> 加入
           </button>
         </div>
       </div>
@@ -622,23 +622,23 @@ function MenuCard({ item, index, onAddToCart }) {
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">{item.name}</h3>
-              <p className="text-sm mb-4 text-gray-500 dark:text-gray-400">Select size</p>
+              <p className="text-sm mb-4 text-gray-500 dark:text-gray-400">選擇份量</p>
               
               <div className="space-y-2 sm:space-y-3">
                 {item.has_half_full ? (
                   <>
                     <button onClick={() => handleAdd('half')} className="w-full p-3 sm:p-4 border-2 rounded-xl hover:border-primary-500 flex items-center justify-between border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                      <div><p className="font-semibold text-gray-900 dark:text-white">Half</p><p className="text-sm text-gray-500 dark:text-gray-400">₹{item.price_half}</p></div>
+                      <div><p className="font-semibold text-gray-900 dark:text-white">半份</p><p className="text-sm text-gray-500 dark:text-gray-400">${item.price_half}</p></div>
                       <Plus className="w-5 h-5 text-primary-600" />
                     </button>
                     <button onClick={() => handleAdd('full')} className="w-full p-3 sm:p-4 border-2 rounded-xl hover:border-primary-500 flex items-center justify-between border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                      <div><p className="font-semibold text-gray-900 dark:text-white">Full</p><p className="text-sm text-gray-500 dark:text-gray-400">₹{item.price_full}</p></div>
+                      <div><p className="font-semibold text-gray-900 dark:text-white">全份</p><p className="text-sm text-gray-500 dark:text-gray-400">${item.price_full}</p></div>
                       <Plus className="w-5 h-5 text-primary-600" />
                     </button>
                   </>
                 ) : (
                   <button onClick={() => handleAdd(null)} className="w-full p-3 sm:p-4 border-2 rounded-xl hover:border-primary-500 flex items-center justify-between border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                    <div><p className="font-semibold text-gray-900 dark:text-white">Add</p><p className="text-sm text-gray-500 dark:text-gray-400">₹{item.price}</p></div>
+                    <div><p className="font-semibold text-gray-900 dark:text-white">加入</p><p className="text-sm text-gray-500 dark:text-gray-400">${item.price}</p></div>
                     <Plus className="w-5 h-5 text-primary-600" />
                   </button>
                 )}
@@ -648,7 +648,7 @@ function MenuCard({ item, index, onAddToCart }) {
                 onClick={() => setShowHalfFull(false)}
                 className="mt-4 w-full py-2 text-gray-500 dark:text-gray-400"
               >
-                Cancel
+                取消
               </button>
             </motion.div>
           </motion.div>
@@ -667,7 +667,7 @@ function CartSidebar({ cart, total, onClose, onRemove, onUpdate, onCheckout }) {
       className="fixed right-0 top-0 h-full w-full max-w-sm shadow-2xl z-50 flex flex-col bg-white dark:bg-gray-800"
     >
       <div className="p-4 border-b flex items-center justify-between border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Your Cart</h2>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white">購物車</h2>
         <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
           <X className="w-5 h-5 text-gray-500 dark:text-white" />
         </button>
@@ -677,7 +677,7 @@ function CartSidebar({ cart, total, onClose, onRemove, onUpdate, onCheckout }) {
         {cart.length === 0 ? (
           <div className="text-center py-8">
             <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">Your cart is empty</p>
+            <p className="text-gray-500 dark:text-gray-400">購物車是空的</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -686,7 +686,7 @@ function CartSidebar({ cart, total, onClose, onRemove, onUpdate, onCheckout }) {
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900 dark:text-white">{item.name}</h4>
                   {item.halfFull && <p className="text-xs capitalize text-gray-500 dark:text-gray-400">{item.halfFull}</p>}
-                  <p className="font-medium text-primary-600 dark:text-orange-400">₹{item.price}</p>
+                  <p className="font-medium text-primary-600 dark:text-orange-400">${item.price}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -712,15 +712,15 @@ function CartSidebar({ cart, total, onClose, onRemove, onUpdate, onCheckout }) {
       {cart.length > 0 && (
         <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
           <div className="flex items-center justify-between mb-4 text-gray-900 dark:text-white">
-            <span className="font-medium">Subtotal</span>
-            <span className="text-xl font-bold">₹{total.toFixed(0)}</span>
+            <span className="font-medium">小計</span>
+            <span className="text-xl font-bold">${total.toFixed(0)}</span>
           </div>
           <button
             onClick={onCheckout}
             className="w-full py-4 bg-primary-500 text-white rounded-xl font-bold flex items-center justify-center gap-2"
           >
             <CreditCard className="w-5 h-5" />
-            Checkout
+            結帳
           </button>
         </div>
       )}
@@ -757,7 +757,7 @@ function CheckoutPage({ cart, total, tableNumber, onBack, onSubmit }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4 text-gray-900 dark:text-white">
-          <h2 className="text-lg font-bold">Checkout</h2>
+          <h2 className="text-lg font-bold">結帳</h2>
           <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
             <X className="w-5 h-5" />
           </button>
@@ -765,49 +765,49 @@ function CheckoutPage({ cart, total, tableNumber, onBack, onSubmit }) {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Name</label>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">姓名</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400"
-              placeholder="Your name"
+              placeholder="請輸入姓名"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Phone</label>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">電話</label>
             <input
               type="tel"
               required
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400"
-              placeholder="Your phone number"
+              placeholder="請輸入電話號碼"
               minLength="10"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Notes (optional)</label>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">備註（選填）</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400"
-              placeholder="Any special instructions..."
+              placeholder="例如：少辣、少鹽..."
               rows="2"
             />
           </div>
           
           <div className="p-4 rounded-xl space-y-2 bg-gray-50 dark:bg-gray-700">
             <div className="flex justify-between text-gray-900 dark:text-white">
-              <span>Items</span>
+              <span>品項數</span>
               <span>{cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
             </div>
             <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
-              <span>Total</span>
-              <span>₹{total.toFixed(0)}</span>
+              <span>總計</span>
+              <span>${total.toFixed(0)}</span>
             </div>
           </div>
           
@@ -821,7 +821,7 @@ function CheckoutPage({ cart, total, tableNumber, onBack, onSubmit }) {
             ) : (
               <>
                 <CreditCard className="w-5 h-5" />
-                Pay & Place Order
+                付款並下單
               </>
             )}
           </button>

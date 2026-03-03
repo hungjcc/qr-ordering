@@ -10,12 +10,18 @@ import { getKitchenOrders, updateOrderStatus, getKitchenStats } from '../lib/api
 import useWebSocket from '../hooks/useWebSocket'
 
 const statusConfig = {
-  pending: { label: 'New', color: 'bg-yellow-500', text: 'text-yellow-600', bg: 'bg-yellow-100 dark:bg-yellow-900/30', action: 'accept' },
-  accepted: { label: 'Confirmed', color: 'bg-blue-500', text: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30', action: 'start' },
-  preparing: { label: 'Preparing', color: 'bg-orange-500', text: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-900/30', action: 'ready' },
-  ready: { label: 'Ready', color: 'bg-green-500', text: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30', action: 'complete' },
-  completed: { label: 'Done', color: 'bg-gray-500', text: 'text-gray-600', bg: 'bg-gray-100 dark:bg-gray-700', action: null },
-  cancelled: { label: 'Cancelled', color: 'bg-red-500', text: 'text-red-600', bg: 'bg-red-100 dark:bg-red-900/30', action: null }
+  pending: { label: '待處理', color: 'bg-yellow-500', text: 'text-yellow-600', bg: 'bg-yellow-100 dark:bg-yellow-900/30', action: 'accept' },
+  accepted: { label: '已接受', color: 'bg-blue-500', text: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30', action: 'start' },
+  preparing: { label: '製作中', color: 'bg-orange-500', text: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-900/30', action: 'ready' },
+  ready: { label: '可取餐', color: 'bg-green-500', text: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30', action: 'complete' },
+  completed: { label: '已完成', color: 'bg-gray-500', text: 'text-gray-600', bg: 'bg-gray-100 dark:bg-gray-700', action: null },
+  cancelled: { label: '已取消', color: 'bg-red-500', text: 'text-red-600', bg: 'bg-red-100 dark:bg-red-900/30', action: null }
+}
+
+const paymentStatusLabels = {
+  pending: '待付款',
+  paid: '已付款',
+  failed: '付款失敗'
 }
 
 export default function KitchenPage() {
@@ -155,7 +161,7 @@ export default function KitchenPage() {
           className="bg-red-500 text-white px-4 py-2 flex items-center justify-center gap-2 sticky top-0 z-50"
         >
           <MicOff className="w-4 h-4" />
-          <span className="text-sm font-medium">Offline - Changes may not sync</span>
+          <span className="text-sm font-medium">離線中 - 變更可能無法同步</span>
         </motion.div>
       )}
       
@@ -173,10 +179,10 @@ export default function KitchenPage() {
                 <ChefHat className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="font-bold text-gray-900 dark:text-white">Kitchen Display</h1>
+                <h1 className="font-bold text-gray-900 dark:text-white">廚房看板</h1>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
                   {isOnline ? <Wifi className="w-3 h-3 text-green-500" /> : <MicOff className="w-3 h-3 text-red-500" />}
-                  Live
+                  即時
                 </p>
               </div>
             </div>
@@ -200,10 +206,10 @@ export default function KitchenPage() {
           
           <div className="flex gap-2 overflow-x-auto pb-1">
             {[
-              { label: 'Pending', value: stats.pending_orders, color: 'bg-yellow-500' },
-              { label: 'Cooking', value: stats.preparing_orders, color: 'bg-orange-500' },
-              { label: 'Ready', value: stats.ready_orders, color: 'bg-green-500' },
-              { label: 'Done', value: stats.completed_today, color: 'bg-gray-500' }
+              { label: '待處理', value: stats.pending_orders, color: 'bg-yellow-500' },
+              { label: '製作中', value: stats.preparing_orders, color: 'bg-orange-500' },
+              { label: '可取餐', value: stats.ready_orders, color: 'bg-green-500' },
+              { label: '已完成', value: stats.completed_today, color: 'bg-gray-500' }
             ].map((stat) => (
               <div
                 key={stat.label}
@@ -226,7 +232,7 @@ export default function KitchenPage() {
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                 }`}
               >
-                {status === 'all' ? 'All' : statusConfig[status]?.label || status}
+                {status === 'all' ? '全部' : statusConfig[status]?.label || status}
               </button>
             ))}
           </div>
@@ -241,7 +247,7 @@ export default function KitchenPage() {
               className="bg-yellow-500 text-white px-3 py-2 flex items-center justify-center gap-2 overflow-hidden"
             >
               <Bell className="w-4 h-4 animate-bounce" />
-              <span className="font-bold text-sm">New Order Received!</span>
+              <span className="font-bold text-sm">收到新訂單！</span>
               <button
                 onClick={() => setNewOrderAlert(false)}
                 className="ml-auto p-1"
@@ -263,8 +269,8 @@ export default function KitchenPage() {
         ) : orders.length === 0 ? (
           <div className="text-center py-16">
             <ChefHat className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-            <p className="text-xl text-gray-500">No orders yet</p>
-            <p className="text-gray-400">New orders will appear here</p>
+            <p className="text-xl text-gray-500">目前沒有訂單</p>
+            <p className="text-gray-400">新訂單會顯示在這裡</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -294,17 +300,17 @@ function KitchenOrderCard({ order, index, onStatusUpdate }) {
   // Format time as HH:MM
   const formatTime = (date) => {
     const d = new Date(date)
-    return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+    return d.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true })
   }
   
   // Format elapsed time in a more readable way
   const formatElapsedTime = (minutes) => {
     if (minutes < 60) {
-      return `${minutes}m`
+      return `${minutes}分`
     }
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
-    return `${hours}h ${mins}m`
+    return `${hours}小時 ${mins}分`
   }
   
   return (
@@ -318,7 +324,7 @@ function KitchenOrderCard({ order, index, onStatusUpdate }) {
     >
       <div className={`px-4 py-3 flex items-center justify-between ${config.bg}`}>
         <div className="flex items-center gap-2">
-          <span className="font-bold text-gray-900 dark:text-white">Table {order.table_number}</span>
+          <span className="font-bold text-gray-900 dark:text-white">餐桌 {order.table_number}</span>
           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
             {config.label}
           </span>
@@ -350,7 +356,7 @@ function KitchenOrderCard({ order, index, onStatusUpdate }) {
         
         {order.notes && (
           <div className="mb-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-            <p className="text-xs text-yellow-700 dark:text-yellow-300">Note: {order.notes}</p>
+            <p className="text-xs text-yellow-700 dark:text-yellow-300">備註：{order.notes}</p>
           </div>
         )}
         
@@ -358,9 +364,11 @@ function KitchenOrderCard({ order, index, onStatusUpdate }) {
           <span className={`text-xs px-2 py-1 rounded-full ${
             order.payment_status === 'paid'
               ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-              : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+              : order.payment_status === 'failed'
+                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
           }`}>
-            {order.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
+            {paymentStatusLabels[order.payment_status] || order.payment_status}
           </span>
           
           {config.action && (
@@ -372,9 +380,9 @@ function KitchenOrderCard({ order, index, onStatusUpdate }) {
                 config.action === 'ready' ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500'
               }`}
             >
-              {config.action === 'accept' ? 'Accept' :
-               config.action === 'start' ? 'Start' :
-               config.action === 'ready' ? 'Ready' : 'Done'}
+              {config.action === 'accept' ? '接單' :
+               config.action === 'start' ? '開始' :
+               config.action === 'ready' ? '標記可取餐' : '標記已完成'}
             </button>
           )}
         </div>

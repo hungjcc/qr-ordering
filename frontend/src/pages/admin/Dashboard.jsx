@@ -52,10 +52,10 @@ export default function Dashboard() {
   const handleSeedMenu = async () => {
     try {
       await seedMenu()
-      addToast({ type: 'success', message: 'Menu seeded successfully!' })
+      addToast({ type: 'success', message: '菜單初始化成功！' })
       fetchData()
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to seed menu' })
+      addToast({ type: 'error', message: '菜單初始化失敗' })
     }
   }
 
@@ -73,28 +73,28 @@ export default function Dashboard() {
 
   const statCards = [
     {
-      title: "Today's Revenue",
-      value: `₹${stats.today_revenue?.toFixed(0) || 0}`,
+      title: "今日營收",
+      value: `$${stats.today_revenue?.toFixed(0) || 0}`,
       icon: <DollarSign className="w-6 h-6" />,
       color: 'from-green-400 to-green-600',
       trend: '+12%'
     },
     {
-      title: "Today's Orders",
+      title: "今日訂單",
       value: stats.today_orders || 0,
       icon: <TrendingUp className="w-6 h-6" />,
       color: 'from-blue-400 to-blue-600',
       trend: '+5%'
     },
     {
-      title: 'Pending Orders',
+      title: '待處理訂單',
       value: stats.pending_orders || 0,
       icon: <Clock className="w-6 h-6" />,
       color: 'from-orange-400 to-orange-600',
       trend: null
     },
     {
-      title: 'Menu Items',
+      title: '菜單品項',
       value: stats.menu_items_count || 0,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'from-purple-400 to-purple-600',
@@ -107,8 +107,8 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-gray-500 dark:text-gray-400">Real-time overview of your restaurant</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">儀表板</h1>
+          <p className="text-gray-500 dark:text-gray-400">餐廳即時營運總覽</p>
         </div>
         <div className="flex items-center gap-3">
           <select
@@ -116,9 +116,9 @@ export default function Dashboard() {
             onChange={(e) => setPeriod(e.target.value)}
             className="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
           >
-            <option value="daily">Today</option>
-            <option value="weekly">This Week</option>
-            <option value="monthly">This Month</option>
+            <option value="daily">今天</option>
+            <option value="weekly">本週</option>
+            <option value="monthly">本月</option>
           </select>
           <button
             onClick={fetchData}
@@ -159,24 +159,24 @@ export default function Dashboard() {
       {/* Secondary Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">This Month</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white">₹{stats.month_revenue?.toFixed(0) || 0}</p>
-          <p className="text-xs text-gray-400">Revenue</p>
+          <p className="text-sm text-gray-500">本月</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">${stats.month_revenue?.toFixed(0) || 0}</p>
+          <p className="text-xs text-gray-400">營收</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">All Time</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white">₹{stats.all_time_revenue?.toFixed(0) || 0}</p>
-          <p className="text-xs text-gray-400">Revenue</p>
+          <p className="text-sm text-gray-500">累計</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">${stats.all_time_revenue?.toFixed(0) || 0}</p>
+          <p className="text-xs text-gray-400">營收</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">All Time</p>
+          <p className="text-sm text-gray-500">累計</p>
           <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.all_time_orders || 0}</p>
-          <p className="text-xs text-gray-400">Orders</p>
+          <p className="text-xs text-gray-400">訂單</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Kitchen</p>
+          <p className="text-sm text-gray-500">廚房</p>
           <p className="text-xl font-bold text-orange-500">{stats.preparing_orders || 0}</p>
-          <p className="text-xs text-gray-400">Preparing</p>
+          <p className="text-xs text-gray-400">製作中</p>
         </div>
       </div>
 
@@ -184,7 +184,7 @@ export default function Dashboard() {
       {sales.items_sold && Object.keys(sales.items_sold).length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Top Selling Items
+            熱銷品項
           </h2>
           <div className="space-y-3">
             {Object.entries(sales.items_sold)
@@ -199,8 +199,8 @@ export default function Dashboard() {
                     <span className="text-gray-900 dark:text-white font-medium">{name}</span>
                   </div>
                   <div className="flex items-center gap-4 text-sm">
-                    <span className="text-gray-500">{data?.quantity || 0} sold</span>
-                    <span className="font-bold text-green-600">₹{data?.revenue?.toFixed(0) || 0}</span>
+                    <span className="text-gray-500">已售 {data?.quantity || 0}</span>
+                    <span className="font-bold text-green-600">${data?.revenue?.toFixed(0) || 0}</span>
                   </div>
                 </div>
               ))}
@@ -210,35 +210,35 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">快速操作</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <button
             onClick={handleSeedMenu}
             className="p-4 bg-primary-50 dark:bg-primary-900/20 rounded-xl text-center hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
           >
             <Plus className="w-6 h-6 mx-auto text-primary-600 mb-2" />
-            <p className="text-sm font-medium text-primary-600">Seed Menu</p>
+            <p className="text-sm font-medium text-primary-600">初始化菜單</p>
           </button>
           <button
             onClick={() => window.location.href = '/admin/orders'}
             className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-center hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
           >
             <TrendingUp className="w-6 h-6 mx-auto text-blue-600 mb-2" />
-            <p className="text-sm font-medium text-blue-600">View Orders</p>
+            <p className="text-sm font-medium text-blue-600">查看訂單</p>
           </button>
           <button
             onClick={() => window.location.href = '/admin/analytics'}
             className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl text-center hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
           >
             <BarChart3 className="w-6 h-6 mx-auto text-green-600 mb-2" />
-            <p className="text-sm font-medium text-green-600">Analytics</p>
+            <p className="text-sm font-medium text-green-600">分析報表</p>
           </button>
           <button
             onClick={() => window.location.href = '/admin/qr'}
             className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl text-center hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
           >
             <Calendar className="w-6 h-6 mx-auto text-purple-600 mb-2" />
-            <p className="text-sm font-medium text-purple-600">QR Codes</p>
+            <p className="text-sm font-medium text-purple-600">QR 碼</p>
           </button>
         </div>
       </div>

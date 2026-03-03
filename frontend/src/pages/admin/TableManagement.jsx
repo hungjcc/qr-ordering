@@ -24,7 +24,7 @@ export default function TableManagement() {
       setTables(data || [])
     } catch (error) {
       console.error('Failed to fetch tables:', error)
-      addToast({ type: 'error', message: 'Failed to load tables' })
+      addToast({ type: 'error', message: '載入桌位失敗' })
     } finally {
       setLoading(false)
     }
@@ -35,32 +35,32 @@ export default function TableManagement() {
   const handleAddTable = async (data) => {
     try {
       await createTable(data)
-      addToast({ type: 'success', message: 'Table added successfully' })
+      addToast({ type: 'success', message: '桌位新增成功' })
       setShowAddModal(false)
       fetchTables()
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to add table' })
+      addToast({ type: 'error', message: '新增桌位失敗' })
     }
   }
 
   const handleStatusChange = async (tableId, status) => {
     try {
       await updateTableStatus(tableId, status)
-      addToast({ type: 'success', message: 'Table status updated' })
+      addToast({ type: 'success', message: '桌位狀態已更新' })
       fetchTables()
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to update status' })
+      addToast({ type: 'error', message: '更新桌位狀態失敗' })
     }
   }
 
   const handleDelete = async (tableId) => {
-    if (!window.confirm('Are you sure you want to delete this table?')) return
+    if (!window.confirm('確定要刪除此桌位嗎？')) return
     try {
       await deleteTable(tableId)
-      addToast({ type: 'success', message: 'Table deleted' })
+      addToast({ type: 'success', message: '桌位已刪除' })
       fetchTables()
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to delete table' })
+      addToast({ type: 'error', message: '刪除桌位失敗' })
     }
   }
 
@@ -69,8 +69,8 @@ export default function TableManagement() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Table Management</h1>
-          <p className="text-gray-500">Manage restaurant tables</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">桌位管理</h1>
+          <p className="text-gray-500">管理餐廳桌位</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -78,14 +78,14 @@ export default function TableManagement() {
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
           >
             <RefreshCw className="w-5 h-5" />
-            Refresh
+            重新整理
           </button>
           <button
             onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
           >
             <Plus className="w-5 h-5" />
-            Add Table
+            新增桌位
           </button>
         </div>
       </div>
@@ -99,12 +99,12 @@ export default function TableManagement() {
         </div>
       ) : tables.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl">
-          <p className="text-gray-500">No tables added yet</p>
+          <p className="text-gray-500">尚未新增桌位</p>
           <button
             onClick={() => setShowAddModal(true)}
             className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
           >
-            Add First Table
+            新增第一個桌位
           </button>
         </div>
       ) : (
@@ -133,6 +133,12 @@ export default function TableManagement() {
 
 function TableCard({ table, onStatusChange, onDelete }) {
   const statuses = ['available', 'occupied', 'reserved', 'maintenance']
+  const statusLabels = {
+    available: '可用',
+    occupied: '使用中',
+    reserved: '已預約',
+    maintenance: '維護中'
+  }
 
   return (
     <motion.div
@@ -150,14 +156,14 @@ function TableCard({ table, onStatusChange, onDelete }) {
           className={`text-xs px-2 py-1 rounded-full border-0 cursor-pointer ${statusColors[table.status]}`}
         >
           {statuses.map((s) => (
-            <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            <option key={s} value={s}>{statusLabels[s]}</option>
           ))}
         </select>
       </div>
 
       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-3">
         <Users className="w-4 h-4" />
-        <span className="text-sm">Capacity: {table.capacity}</span>
+        <span className="text-sm">容量：{table.capacity}</span>
       </div>
 
       <div className="flex gap-2">
@@ -196,12 +202,12 @@ function AddTableModal({ onClose, onAdd }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div className="relative bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-sm">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Add New Table</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">新增桌位</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Table Number
+              桌號
             </label>
             <input
               type="number"
@@ -215,7 +221,7 @@ function AddTableModal({ onClose, onAdd }) {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Capacity
+              容量
             </label>
             <input
               type="number"
@@ -234,14 +240,14 @@ function AddTableModal({ onClose, onAdd }) {
               onClick={onClose}
               className="flex-1 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              Cancel
+              取消
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 py-2 px-4 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
             >
-              {loading ? 'Adding...' : 'Add Table'}
+              {loading ? '新增中...' : '新增桌位'}
             </button>
           </div>
         </form>

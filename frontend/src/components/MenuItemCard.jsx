@@ -57,7 +57,7 @@ export default function MenuItemCard({ item }) {
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-2">
             <span className="text-xl font-bold text-primary-600 dark:text-primary-400">
-              ₹{price}
+              ${price}
             </span>
             {hasHalfOption && (
               <span className="text-sm text-gray-500">
@@ -114,7 +114,7 @@ export default function MenuItemCard({ item }) {
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                     }`}
                   >
-                    Half ₹{item.price_half}
+                    Half ${item.price_half}
                   </button>
                   <button
                     onClick={() => setSelectedSize('full')}
@@ -124,12 +124,12 @@ export default function MenuItemCard({ item }) {
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                     }`}
                   >
-                    Full ₹{item.price_full}
+                    Full ${item.price_full}
                   </button>
                 </div>
               ) : (
                 <p className="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-4">
-                  ₹{item.price_full}
+                  ${item.price_full}
                 </p>
               )}
               
@@ -153,7 +153,7 @@ export default function MenuItemCard({ item }) {
               {/* Total */}
               <div className="text-center mb-4">
                 <span className="text-gray-500">Total: </span>
-                <span className="text-2xl font-bold dark:text-white">₹{price * quantity}</span>
+                <span className="text-2xl font-bold dark:text-white">${price * quantity}</span>
               </div>
               
               {/* Actions */}

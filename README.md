@@ -63,7 +63,7 @@ delicacy-restaurant/
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+ (backend)
+- Python 3.11 to 3.13 (backend)
 - Node.js 18+ (frontend)
 - Git
 
@@ -73,11 +73,11 @@ delicacy-restaurant/
 cd delicacy-restaurant/backend
 
 # Create virtual environment
-python -m venv venv
+python -m venv .venv
 # Windows
-venv\Scripts\activate
+.venv\Scripts\activate
 # Linux/Mac
-source venv/bin/activate
+source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt

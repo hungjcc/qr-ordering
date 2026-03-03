@@ -81,7 +81,7 @@ export default function CartPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900 dark:text-white">{item.name}</h3>
                   <p className="text-sm text-gray-500">
-                    {item.size === 'half' ? 'Half' : 'Full'} • ₹{item.price} each
+                    {item.size === 'half' ? 'Half' : 'Full'} • ${item.price} each
                   </p>
                   {item.prep_time_minutes && (
                     <p className="text-xs text-gray-400 mt-1">
@@ -113,7 +113,7 @@ export default function CartPage() {
                   {/* Item Total */}
                   <div className="text-right min-w-[70px]">
                     <span className="font-bold text-primary-600 dark:text-primary-400">
-                      ₹{item.price * item.quantity}
+                      ${item.price * item.quantity}
                     </span>
                   </div>
                   
@@ -141,15 +141,15 @@ export default function CartPage() {
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-gray-600 dark:text-gray-400">
               <span>Subtotal</span>
-              <span>₹{subtotal.toFixed(2)}</span>
+              <span>${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-gray-600 dark:text-gray-400">
               <span>Tax (5%)</span>
-              <span>₹{tax.toFixed(2)}</span>
+              <span>${tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-xl font-bold dark:text-white pt-2 border-t border-gray-200 dark:border-gray-700">
               <span>Total</span>
-              <span>₹{grandTotal.toFixed(2)}</span>
+              <span>${grandTotal.toFixed(2)}</span>
             </div>
           </div>
           

@@ -38,7 +38,7 @@ export default function Navbar({ showMenuToggle = true, showCart = true }) {
                 <h1 className="text-lg font-bold text-gray-900 dark:text-white">
                   Delicacy
                 </h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Restaurant</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">餐廳</p>
               </div>
             </Link>
           </div>
@@ -51,7 +51,7 @@ export default function Navbar({ showMenuToggle = true, showCart = true }) {
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary-100 dark:bg-primary-900/30 rounded-full"
             >
               <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
-                Table {tableNumber}
+                餐桌 {tableNumber}
               </span>
             </motion.div>
           )}
@@ -63,7 +63,7 @@ export default function Navbar({ showMenuToggle = true, showCart = true }) {
               <Link
                 to={tableNumber ? `/table/${tableNumber}` : '/'}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                title="View Menu"
+                title="查看菜單"
               >
                 <Home className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               </Link>
@@ -74,7 +74,7 @@ export default function Navbar({ showMenuToggle = true, showCart = true }) {
               <Link
                 to="/kitchen"
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                title="Kitchen Dashboard"
+                title="廚房看板"
               >
                 <ChefHat className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               </Link>
@@ -85,7 +85,7 @@ export default function Navbar({ showMenuToggle = true, showCart = true }) {
               <Link
                 to="/admin"
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                title="Admin Panel"
+                title="管理後台"
               >
                 <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               </Link>
@@ -95,7 +95,7 @@ export default function Navbar({ showMenuToggle = true, showCart = true }) {
             <button
               onClick={toggleDarkMode}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title={darkMode ? 'Light Mode' : 'Dark Mode'}
+              title={darkMode ? '淺色模式' : '深色模式'}
             >
               {darkMode ? (
                 <Sun className="w-5 h-5 text-yellow-500" />

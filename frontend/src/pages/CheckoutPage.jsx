@@ -209,7 +209,7 @@ export default function CheckoutPage() {
                     {item.quantity}x {item.name} ({item.size})
                   </span>
                   <span className="font-medium dark:text-white">
-                    ₹{item.price * item.quantity}
+                    ${item.price * item.quantity}
                   </span>
                 </div>
               ))}
@@ -217,15 +217,15 @@ export default function CheckoutPage() {
               <div className="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-2">
                 <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                   <span>Subtotal</span>
-                  <span>₹{subtotal.toFixed(2)}</span>
+                  <span>${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                   <span>Tax (5%)</span>
-                  <span>₹{tax.toFixed(2)}</span>
+                  <span>${tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold dark:text-white pt-2 border-t border-gray-200 dark:border-gray-700">
                   <span>Total</span>
-                  <span>₹{grandTotal.toFixed(2)}</span>
+                  <span>${grandTotal.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -364,7 +364,7 @@ export default function CheckoutPage() {
                 ) : paymentMethod === 'razorpay' ? (
                   <>
                     <CreditCard className="w-5 h-5" />
-                    Pay ₹{grandTotal.toFixed(2)} Online
+                    Pay ${grandTotal.toFixed(2)} Online
                   </>
                 ) : (
                   <>
@@ -418,7 +418,7 @@ export default function CheckoutPage() {
                   {/* Amount */}
                   <div className="text-center mb-6">
                     <p className="text-gray-500 text-sm">Payable Amount</p>
-                    <p className="text-3xl font-bold text-primary-600">₹{grandTotal.toFixed(2)}</p>
+                    <p className="text-3xl font-bold text-primary-600">${grandTotal.toFixed(2)}</p>
                   </div>
                   
                   {/* Razorpay Info */}
@@ -451,7 +451,7 @@ export default function CheckoutPage() {
                       className="w-full btn-primary py-3 flex items-center justify-center gap-2"
                     >
                       <CreditCard className="w-5 h-5" />
-                      Pay ₹{grandTotal.toFixed(2)} with Razorpay
+                      Pay ${grandTotal.toFixed(2)} with Razorpay
                     </motion.button>
                   )}
                 </>

@@ -16,9 +16,9 @@ export default function QRGenerator() {
       await navigator.clipboard.writeText(menuUrl)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-      addToast({ type: 'success', message: 'URL copied to clipboard!' })
+      addToast({ type: 'success', message: '網址已複製到剪貼簿！' })
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to copy URL' })
+      addToast({ type: 'error', message: '複製網址失敗' })
     }
   }
 
@@ -28,7 +28,7 @@ export default function QRGenerator() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Table ${selectedTable} QR Code</title>
+          <title>桌位 ${selectedTable} QR Code</title>
           <style>
             body { 
               display: flex; 
@@ -45,9 +45,9 @@ export default function QRGenerator() {
           </style>
         </head>
         <body>
-          <h1>Table ${selectedTable}</h1>
+          <h1>桌位 ${selectedTable}</h1>
           <img src="${generateQRCode(menuUrl)}" alt="QR Code" />
-          <p>Scan to view menu and order</p>
+          <p>掃描即可查看菜單並下單</p>
         </body>
       </html>
     `)
@@ -60,22 +60,22 @@ export default function QRGenerator() {
     link.href = generateQRCode(menuUrl)
     link.download = `table-${selectedTable}-qr.png`
     link.click()
-    addToast({ type: 'success', message: 'QR code downloaded!' })
+    addToast({ type: 'success', message: 'QR Code 已下載！' })
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">QR Code Generator</h1>
-        <p className="text-gray-500">Generate QR codes for table menus</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">QR Code 產生器</h1>
+        <p className="text-gray-500">產生桌位菜單 QR Code</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Table Selection */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Select Table
+            選擇桌位
           </h2>
           <div className="grid grid-cols-5 gap-2">
             {[...Array(10)].map((_, i) => (
@@ -103,12 +103,12 @@ export default function QRGenerator() {
           <div className="bg-white p-4 rounded-xl border-2 border-dashed border-gray-200">
             <img
               src={generateQRCode(menuUrl)}
-              alt={`Table ${selectedTable} QR Code`}
+              alt={`桌位 ${selectedTable} QR Code`}
               className="w-48 h-48"
             />
           </div>
           <p className="mt-4 text-center text-gray-500 text-sm">
-            Scan to order from Table {selectedTable}
+            掃描後可於桌位 {selectedTable} 下單
           </p>
         </motion.div>
       </div>
@@ -116,7 +116,7 @@ export default function QRGenerator() {
       {/* URL & Actions */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Menu URL
+          菜單網址
         </h2>
         <div className="flex gap-3">
           <input
@@ -130,7 +130,7 @@ export default function QRGenerator() {
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             {copied ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
-            {copied ? 'Copied!' : 'Copy'}
+            {copied ? '已複製！' : '複製'}
           </button>
         </div>
       </div>
@@ -138,7 +138,7 @@ export default function QRGenerator() {
       {/* Download Options */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Download Options
+          下載選項
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((table) => (
@@ -151,7 +151,7 @@ export default function QRGenerator() {
               className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
             >
               <QrCode className="w-5 h-5 text-primary-500" />
-              <span className="text-sm text-gray-900 dark:text-white">Table {table}</span>
+              <span className="text-sm text-gray-900 dark:text-white">桌位 {table}</span>
             </button>
           ))}
         </div>
@@ -160,13 +160,13 @@ export default function QRGenerator() {
       {/* Print Instructions */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
         <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-          How to Use
+          使用方式
         </h3>
         <ol className="list-decimal list-inside text-sm text-blue-800 dark:text-blue-200 space-y-1">
-          <li>Select a table number from above</li>
-          <li>Download or print the QR code</li>
-          <li>Place the QR code on the corresponding table</li>
-          <li>Customers scan to view menu and place orders</li>
+          <li>從上方選擇桌號</li>
+          <li>下載或列印 QR Code</li>
+          <li>將 QR Code 放置在對應桌位</li>
+          <li>顧客掃描後可查看菜單並下單</li>
         </ol>
       </div>
     </div>

@@ -222,7 +222,7 @@ export default function AdminPanel() {
                       </div>
                       <span className="text-gray-500 text-sm">Today's Revenue</span>
                     </div>
-                    <p className="text-2xl font-bold dark:text-white">₹{dashboard.today_revenue.toFixed(2)}</p>
+                    <p className="text-2xl font-bold dark:text-white">${dashboard.today_revenue.toFixed(2)}</p>
                   </div>
                   
                   <div className="card p-4">
@@ -242,7 +242,7 @@ export default function AdminPanel() {
                       </div>
                       <span className="text-gray-500 text-sm">Total Revenue</span>
                     </div>
-                    <p className="text-2xl font-bold dark:text-white">₹{dashboard.total_revenue.toFixed(2)}</p>
+                    <p className="text-2xl font-bold dark:text-white">${dashboard.total_revenue.toFixed(2)}</p>
                   </div>
                 </div>
                 
@@ -375,7 +375,7 @@ export default function AdminPanel() {
                             <div>
                               <h3 className="font-semibold dark:text-white">{item.name}</h3>
                               <p className="text-sm text-gray-500">
-                                ₹{item.price_full} {item.price_half && `/ ₹${item.price_half} half`}
+                                ${item.price_full} {item.price_half && `/ $${item.price_half} half`}
                               </p>
                             </div>
                           </div>
@@ -426,12 +426,12 @@ export default function AdminPanel() {
                       <p className="text-gray-500">Total Orders</p>
                     </div>
                     <div className="text-center p-4 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                      <p className="text-3xl font-bold text-green-600">₹{sales.total_revenue.toFixed(2)}</p>
+                      <p className="text-3xl font-bold text-green-600">${sales.total_revenue.toFixed(2)}</p>
                       <p className="text-gray-500">Total Revenue</p>
                     </div>
                     <div className="text-center p-4 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
                       <p className="text-3xl font-bold text-blue-600">
-                        ₹{sales.total_orders > 0 ? (sales.total_revenue / sales.total_orders).toFixed(2) : '0'}
+                        ${sales.total_orders > 0 ? (sales.total_revenue / sales.total_orders).toFixed(2) : '0'}
                       </p>
                       <p className="text-gray-500">Avg Order Value</p>
                     </div>
@@ -459,7 +459,7 @@ export default function AdminPanel() {
                             <td className="py-3 text-sm dark:text-white">Table {order.table_number}</td>
                             <td className="py-3 text-sm dark:text-white">{order.customer_name}</td>
                             <td className="py-3 text-sm dark:text-white">{order.items.length} items</td>
-                            <td className="py-3 text-sm font-semibold dark:text-white">₹{order.total}</td>
+                            <td className="py-3 text-sm font-semibold dark:text-white">${order.total}</td>
                             <td className="py-3">
                               <span className={`badge ${
                                 order.order_status === 'completed' ? 'badge-veg' :

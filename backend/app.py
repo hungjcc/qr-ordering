@@ -887,7 +887,7 @@ async def validate_discount(code: str, order_amount: float, db: AsyncSession = D
         raise HTTPException(status_code=400, detail="Discount code usage limit reached")
     
     if order_amount < discount.min_order_amount:
-        raise HTTPException(status_code=400, detail=f"Minimum order amount ₹{discount.min_order_amount} required")
+        raise HTTPException(status_code=400, detail=f"Minimum order amount ${discount.min_order_amount} required")
     
     # Calculate discount
     if discount.discount_type == "percentage":
@@ -1162,7 +1162,7 @@ async def create_payment_order(order_data: Dict, db: AsyncSession = Depends(get_
     try:
         razorpay_order = razorpay_client.order.create({
             "amount": int(amount * 100),
-            "currency": "INR",
+            "currency": "HKD",
             "receipt": order.order_number,
             "notes": {
                 "table_number": order.table_number,

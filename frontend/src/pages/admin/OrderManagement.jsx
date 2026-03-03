@@ -20,6 +20,21 @@ const paymentStatusColors = {
   failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
 }
 
+const statusLabels = {
+  pending: '待處理',
+  accepted: '已接受',
+  preparing: '製作中',
+  ready: '可取餐',
+  completed: '已完成',
+  cancelled: '已取消'
+}
+
+const paymentStatusLabels = {
+  pending: '待付款',
+  paid: '已付款',
+  failed: '付款失敗'
+}
+
 export default function OrderManagement() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -40,7 +55,7 @@ export default function OrderManagement() {
       setOrders(data || [])
     } catch (error) {
       console.error('Failed to fetch orders:', error)
-      addToast({ type: 'error', message: 'Failed to load orders' })
+      addToast({ type: 'error', message: '載入訂單失敗' })
     } finally {
       setLoading(false)
     }
@@ -62,11 +77,11 @@ export default function OrderManagement() {
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
       await updateOrderStatus(orderId, newStatus)
-      addToast({ type: 'success', message: 'Order status updated' })
+      addToast({ type: 'success', message: '訂單狀態已更新' })
       setSelectedOrder(null)
       fetchOrders()
     } catch (error) {
-      addToast({ type: 'error', message: 'Failed to update status' })
+      addToast({ type: 'error', message: '更新狀態失敗' })
     }
   }
 
@@ -77,14 +92,14 @@ export default function OrderManagement() {
       setSelectedOrder(fullOrder)
     } catch (error) {
       console.error('Failed to fetch order details:', error)
-      addToast({ type: 'error', message: 'Failed to load order details' })
+      addToast({ type: 'error', message: '載入訂單詳情失敗' })
     } finally {
       setSelectedOrderLoading(false)
     }
   }
 
   const formatTime = (date) => {
-    return new Date(date).toLocaleString('en-IN', {
+    return new Date(date).toLocaleString('zh-TW', {
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',
@@ -97,15 +112,15 @@ export default function OrderManagement() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Order Management</h1>
-          <p className="text-gray-500 dark:text-gray-400">View and manage all orders</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">訂單管理</h1>
+          <p className="text-gray-500 dark:text-gray-400">查看並管理所有訂單</p>
         </div>
         <button
           onClick={fetchOrders}
           className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
         >
           <RefreshCw className="w-5 h-5" />
-          Refresh
+          重新整理
         </button>
       </div>
 
@@ -115,7 +130,7 @@ export default function OrderManagement() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by order number..."
+            placeholder="依訂單編號搜尋..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary-500"
@@ -126,13 +141,13 @@ export default function OrderManagement() {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
         >
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="accepted">Accepted</option>
-          <option value="preparing">Preparing</option>
-          <option value="ready">Ready</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="">全部狀態</option>
+          <option value="pending">待處理</option>
+          <option value="accepted">已接受</option>
+          <option value="preparing">製作中</option>
+          <option value="ready">可取餐</option>
+          <option value="completed">已完成</option>
+          <option value="cancelled">已取消</option>
         </select>
       </div>
 
@@ -140,11 +155,11 @@ export default function OrderManagement() {
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-          <p className="mt-4 text-gray-500">Loading orders...</p>
+          <p className="mt-4 text-gray-500">載入訂單中...</p>
         </div>
       ) : orders.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">No orders found</p>
+          <p className="text-gray-500">找不到訂單</p>
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
@@ -152,14 +167,14 @@ export default function OrderManagement() {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Order</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Table</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Customer</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Total</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Payment</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Time</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">訂單</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">桌號</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">顧客</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">總額</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">狀態</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">付款</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">時間</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -169,22 +184,22 @@ export default function OrderManagement() {
                       {order.order_number}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      Table {order.table_number}
+                      餐桌 {order.table_number}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                       {order.customer_name}
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                      ₹{order.total_amount?.toFixed(2)}
+                      ${order.total_amount?.toFixed(2)}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[order.status] || 'bg-gray-100'}`}>
-                        {order.status}
+                        {statusLabels[order.status] || order.status}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${paymentStatusColors[order.payment_status] || 'bg-gray-100'}`}>
-                        {order.payment_status}
+                        {paymentStatusLabels[order.payment_status] || order.payment_status}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">
@@ -222,7 +237,7 @@ export default function OrderManagement() {
 
 function OrderDetailModal({ order, onClose, onStatusUpdate }) {
   const formatTime = (date) => {
-    return new Date(date).toLocaleString('en-IN', {
+    return new Date(date).toLocaleString('zh-TW', {
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',
@@ -253,44 +268,44 @@ function OrderDetailModal({ order, onClose, onStatusUpdate }) {
           <X className="w-5 h-5" />
         </button>
 
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Order Details</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">訂單詳情</h2>
 
         <div className="space-y-4">
           {/* Order Info */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Order Number</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">訂單編號</p>
               <p className="font-medium text-gray-900 dark:text-white">{order.order_number}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Table</p>
-              <p className="font-medium text-gray-900 dark:text-white">Table {order.table_number}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">桌號</p>
+              <p className="font-medium text-gray-900 dark:text-white">餐桌 {order.table_number}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Customer</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">顧客</p>
               <p className="font-medium text-gray-900 dark:text-white">{order.customer_name}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Phone</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">電話</p>
               <p className="font-medium text-gray-900 dark:text-white">{order.customer_phone}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">狀態</p>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === 'completed' ? 'bg-green-100 text-green-800' : order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                {order.status}
+                {statusLabels[order.status] || order.status}
               </span>
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Payment</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">付款</p>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${order.payment_status === 'paid' ? 'bg-green-100 text-green-800' : order.payment_status === 'failed' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                {order.payment_status}
+                {paymentStatusLabels[order.payment_status] || order.payment_status}
               </span>
             </div>
           </div>
 
           {/* Items */}
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Items</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">品項</p>
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-2">
               {order.items_json && order.items_json.length > 0 ? (
                 order.items_json.map((item, i) => (
@@ -307,11 +322,11 @@ function OrderDetailModal({ order, onClose, onStatusUpdate }) {
                         )}
                       </div>
                     </div>
-                    <span className="text-gray-600 dark:text-gray-300">₹{(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="text-gray-600 dark:text-gray-300">${(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 dark:text-gray-400 text-center py-2">No items</p>
+                <p className="text-gray-500 dark:text-gray-400 text-center py-2">沒有品項</p>
               )}
             </div>
           </div>
@@ -319,36 +334,36 @@ function OrderDetailModal({ order, onClose, onStatusUpdate }) {
           {/* Totals */}
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500 dark:text-gray-400">Subtotal</span>
-              <span className="text-gray-900 dark:text-white">₹{order.subtotal?.toFixed(2)}</span>
+              <span className="text-gray-500 dark:text-gray-400">小計</span>
+              <span className="text-gray-900 dark:text-white">${order.subtotal?.toFixed(2)}</span>
             </div>
             {order.discount_amount > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-green-500">Discount ({order.discount_code})</span>
-                <span className="text-green-500">-₹{order.discount_amount?.toFixed(2)}</span>
+                <span className="text-green-500">折扣（{order.discount_code}）</span>
+                <span className="text-green-500">-${order.discount_amount?.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500 dark:text-gray-400">Tax (GST)</span>
-              <span className="text-gray-900 dark:text-white">₹{order.tax_amount?.toFixed(2)}</span>
+              <span className="text-gray-500 dark:text-gray-400">稅金（GST）</span>
+              <span className="text-gray-900 dark:text-white">${order.tax_amount?.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold text-lg">
-              <span className="text-gray-900 dark:text-white">Total</span>
-              <span className="text-primary-600">₹{order.total_amount?.toFixed(2)}</span>
+              <span className="text-gray-900 dark:text-white">總計</span>
+              <span className="text-primary-600">${order.total_amount?.toFixed(2)}</span>
             </div>
           </div>
 
           {/* Timestamps */}
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4 text-xs text-gray-500 space-y-1">
-            <p>Created: {formatTime(order.created_at)}</p>
-            {order.updated_at && <p>Updated: {formatTime(order.updated_at)}</p>}
-            {order.completed_at && <p>Completed: {formatTime(order.completed_at)}</p>}
+            <p>建立時間：{formatTime(order.created_at)}</p>
+            {order.updated_at && <p>更新時間：{formatTime(order.updated_at)}</p>}
+            {order.completed_at && <p>完成時間：{formatTime(order.completed_at)}</p>}
           </div>
 
           {/* Payment Info */}
           {order.payment_id && (
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Payment ID</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">付款編號</p>
               <p className="font-mono text-sm text-gray-900 dark:text-white">{order.payment_id}</p>
             </div>
           )}
@@ -356,7 +371,7 @@ function OrderDetailModal({ order, onClose, onStatusUpdate }) {
           {/* Notes */}
           {order.notes && (
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Notes</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">備註</p>
               <p className="text-sm text-gray-900 dark:text-white">{order.notes}</p>
             </div>
           )}
@@ -370,7 +385,7 @@ function OrderDetailModal({ order, onClose, onStatusUpdate }) {
                     onClick={() => onStatusUpdate(order.id, 'accepted')}
                     className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                   >
-                    Accept
+                    接受
                   </button>
                 )}
                 {order.status === 'accepted' && (
@@ -378,7 +393,7 @@ function OrderDetailModal({ order, onClose, onStatusUpdate }) {
                     onClick={() => onStatusUpdate(order.id, 'preparing')}
                     className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
                   >
-                    Start Preparing
+                    開始製作
                   </button>
                 )}
                 {order.status === 'preparing' && (
@@ -386,7 +401,7 @@ function OrderDetailModal({ order, onClose, onStatusUpdate }) {
                     onClick={() => onStatusUpdate(order.id, 'ready')}
                     className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
                   >
-                    Mark Ready
+                    標記可取餐
                   </button>
                 )}
                 {order.status === 'ready' && (
@@ -394,14 +409,14 @@ function OrderDetailModal({ order, onClose, onStatusUpdate }) {
                     onClick={() => onStatusUpdate(order.id, 'completed')}
                     className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
                   >
-                    Complete
+                    完成
                   </button>
                 )}
                 <button
                   onClick={() => onStatusUpdate(order.id, 'cancelled')}
                   className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                 >
-                  Cancel
+                  取消訂單
                 </button>
               </>
             )}
