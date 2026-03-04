@@ -245,6 +245,8 @@ The system uses WebSocket for real-time updates:
 - `deploy_gcp_learning.sh`：一鍵部署前台 + 後台到 Cloud Run
 - `destroy_gcp_learning.sh`：一鍵刪除前台 + 後台服務並清理 images
 - `destroy_gcp_learning.sh --dry-run`：只列出將刪除項目，不實際刪除
+- `pause_gcp_learning.sh`：只停 Cloud Run 服務（保留映像）
+- `resume_gcp_learning.sh`：由既有 latest 映像快速恢復服務
 
 ### Quick Commands
 
@@ -257,6 +259,12 @@ The system uses WebSocket for real-time updates:
 
 # 3) Preview cleanup only
 ./destroy_gcp_learning.sh --dry-run
+
+# 4) Pause only (keep images)
+./pause_gcp_learning.sh
+
+# 5) Resume fast (from existing images)
+./resume_gcp_learning.sh
 ```
 
 ### 架構圖（Cloud Run）
@@ -310,6 +318,42 @@ flowchart LR
 ```
 
 > Learning mode 備註：目前使用 SQLite，Cloud Run instance 重啟後資料可能不持久；正式環境建議改用 Cloud SQL (PostgreSQL)。
+
+### 📅 日曆式提醒（避免忘記清理）
+
+- 每次 Demo 完成後（建議當日）：先執行 `./gcp_health_check.sh` 檢查現況
+- 每週固定一天（例如每週五）：執行 `./destroy_gcp_learning.sh --dry-run` 預覽待刪除資源
+- 若短期不再使用（例如 3-7 日內無 Demo）：執行 `./destroy_gcp_learning.sh` 釋放 Cloud Run 與映像成本
+- 下次要再展示時：重新執行 `./deploy_gcp_learning.sh` 一鍵恢復環境
+
+### 💸 最低成本模式（保留映像、只停服務）
+
+適合情境：你想暫停每日計算成本，但希望下次快速恢復，不想重建映像。
+
+- 步驟 1（建議先看）：`./gcp_health_check.sh`
+- 步驟 2（只刪 Cloud Run，保留 Artifact Registry 映像）：
+
+```bash
+./pause_gcp_learning.sh
+```
+
+- 步驟 2b（只預覽，不實際停）：
+
+```bash
+./pause_gcp_learning.sh --dry-run
+```
+
+- 步驟 3（確認服務已停）：
+
+```bash
+gcloud run services list --region=asia-east1
+```
+
+- 恢復方式（不需重新 build，直接用現有 latest 映像部署）：
+
+```bash
+./resume_gcp_learning.sh
+```
 
 ### QR Codes
 - `GET /api/admin/generate-qr/{table}` - Generate QR
