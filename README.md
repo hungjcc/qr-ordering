@@ -7,7 +7,7 @@ A complete QR-based restaurant ordering system with real-time kitchen display, a
 ## 🏗️ Architecture
 
 ```
-delicacy-restaurant/
+qr-ordering/
 ├── backend/
 │   ├── app.py                 # FastAPI application (all-in-one)
 │   ├── requirements.txt       # Python dependencies
@@ -43,6 +43,9 @@ delicacy-restaurant/
 - 🍽️ Browse menu with categories and subcategories
 - 🔍 Search and filter items (Veg/Non-Veg)
 - 🛒 Add to cart with Half/Full selection
+- 🥤 套餐可綁定配餐飲品（linked drink）
+- 🧊 套餐配餐規則：熱飲 +$0、凍飲 +$3（不收飲品單點原價）
+- 🧾 購物車/結帳會顯示「套餐價 + 附加費 = 實收」
 - 💳 Razorpay payment integration
 - 📊 Real-time order status tracking
 
@@ -59,6 +62,19 @@ delicacy-restaurant/
 - 📱 QR code generation for tables
 - 📊 Sales reports and analytics
 - 💳 Discount coupon management
+- ⚙️ 定價設定頁（午市/晚市時段 + 套餐加減幅）
+
+### Business Rules (Latest)
+- 餐廳品牌名稱：**熊熊冰室**
+- 套餐價格計算：`套餐價 + 配餐附加費`
+	- 配熱飲：附加費 `+0`
+	- 配凍飲：附加費 `+3`
+	- 未配飲品：附加費 `+0`（按目前規則）
+- 配餐飲品資料會寫入訂單明細：
+	- `linked_drink_item_id`
+	- `linked_drink_name`
+	- `drink_temp` (`hot`/`iced`)
+- 香港手機號碼驗證：接受 `8` 位數字，或 `+852` 前綴格式
 
 ## 🚀 Quick Start
 
@@ -70,7 +86,7 @@ delicacy-restaurant/
 ### Backend Setup
 
 ```bash
-cd delicacy-restaurant/backend
+cd qr-ordering/backend
 
 # Create virtual environment
 python -m venv .venv
@@ -96,7 +112,7 @@ uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ### Frontend Setup
 
 ```bash
-cd delicacy-restaurant/frontend
+cd qr-ordering/frontend
 
 # Install dependencies
 npm install
@@ -219,6 +235,81 @@ The system uses WebSocket for real-time updates:
 - `GET /api/admin/sales` - Sales report
 - `GET /api/admin/analytics` - Analytics data
 - `GET /api/admin/export` - Export CSV
+- `GET /api/admin/pricing-settings` - 取得套餐時段定價設定
+- `PUT /api/admin/pricing-settings` - 更新套餐時段定價設定
+
+## ☁️ Google Cloud Run（Learning Mode）
+
+新增一鍵腳本：
+
+- `deploy_gcp_learning.sh`：一鍵部署前台 + 後台到 Cloud Run
+- `destroy_gcp_learning.sh`：一鍵刪除前台 + 後台服務並清理 images
+- `destroy_gcp_learning.sh --dry-run`：只列出將刪除項目，不實際刪除
+
+### Quick Commands
+
+```bash
+# 1) Deploy
+./deploy_gcp_learning.sh
+
+# 2) Cleanup
+./destroy_gcp_learning.sh
+
+# 3) Preview cleanup only
+./destroy_gcp_learning.sh --dry-run
+```
+
+### 架構圖（Cloud Run）
+
+```mermaid
+flowchart LR
+	U[使用者瀏覽器] --> F[前台 Cloud Run<br/>qr-frontend]
+	F -->|HTTP /api| B[後台 Cloud Run<br/>qr-backend]
+	B --> D[(SQLite 資料庫)]
+```
+
+### 請求流程圖（下單）
+
+```mermaid
+sequenceDiagram
+	participant C as 顧客
+	participant FE as 前台 Cloud Run<br/>qr-frontend
+	participant BE as 後台 Cloud Run<br/>qr-backend
+	participant DB as SQLite
+	participant K as 廚房頁面
+
+	C->>FE: 掃描桌號 QR Code（/table/{tableNumber}）
+	FE->>BE: 讀取菜單（GET /api/menu）
+	BE->>DB: 查詢菜單資料
+	DB-->>BE: 回傳菜單
+	BE-->>FE: 回傳菜單 JSON
+	FE-->>C: 顯示菜單、加入購物車
+
+	C->>FE: 提交訂單與付款資料
+	FE->>BE: 建立訂單（POST /api/orders）
+	BE->>DB: 寫入訂單/明細
+	DB-->>BE: 寫入成功
+	BE-->>FE: 回傳訂單編號與狀態
+
+	BE-->>K: 推送新訂單（WebSocket）
+	K-->>BE: 更新狀態（接單/製作中/完成）
+	BE->>DB: 更新訂單狀態
+	BE-->>FE: 推送狀態更新（WebSocket）
+	FE-->>C: 顯示最新訂單進度
+```
+
+### 請求流程圖（簡報一行版）
+
+```mermaid
+flowchart LR
+	A[掃碼入座] --> B[顯示菜單]
+	B --> C[提交訂單]
+	C --> D[後台入單]
+	D --> E[廚房更新]
+	E --> F[顧客睇進度]
+```
+
+> Learning mode 備註：目前使用 SQLite，Cloud Run instance 重啟後資料可能不持久；正式環境建議改用 Cloud SQL (PostgreSQL)。
 
 ### QR Codes
 - `GET /api/admin/generate-qr/{table}` - Generate QR

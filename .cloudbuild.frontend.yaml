@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'asia-east1-docker.pkg.dev/qr-ordering-489204/qr-ordering/qr-frontend:latest'
+      - '--build-arg'
+      - 'VITE_API_URL=https://qr-backend-jnfx7wtpuq-de.a.run.app'
+      - '.'
+images:
+  - 'asia-east1-docker.pkg.dev/qr-ordering-489204/qr-ordering/qr-frontend:latest'
